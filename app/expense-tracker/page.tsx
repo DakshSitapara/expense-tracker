@@ -11,7 +11,9 @@ export default function ExpenseTracker() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
 
-  const handleAddExpenseClick = () => setShowForm(true);
+  const handleAddExpenseClick = () =>{
+     setShowForm(true);
+  }
   const handleFormClose = () => setShowForm(false);
 
   const handleAddExpense = (expense: Expense) => {
