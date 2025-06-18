@@ -27,7 +27,7 @@ export function RegisterForm({
           <form>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="email">Name</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
                   type="name"

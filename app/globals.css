@@ -120,3 +120,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .dark {
+    @apply bg-background text-foreground;
+  }
+}
+
+button,
+a,
+input[type="submit"],
+input[type="button"],
+[role="button"],
+[tabindex]:not([tabindex="-1"]) {
+  cursor: pointer;
+}
