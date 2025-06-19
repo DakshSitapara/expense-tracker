@@ -56,14 +56,14 @@ export function AddExpenseForm({
 
   return (
     <div className={cn("flex flex-col gap-6 items-center", className)} {...props}>
-      <Card className=" w-[80%]">
+      <Card className="w-[80%]">
         <CardHeader>
           <CardTitle className="text-center">Add Expense</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
-            {/* <div className="grid grid-cols-2 gap-3">    */}
+            <div className="grid grid-cols-2 gap-3">   
               <div className="grid gap-3">
                 <Label htmlFor="title">Title</Label>
                 <Input
@@ -73,6 +73,7 @@ export function AddExpenseForm({
                   required
                   value={title}
                   onChange={e => setTitle(e.target.value)}
+                  autoFocus
                 />
               </div>
               <div className="grid gap-3">
@@ -88,7 +89,7 @@ export function AddExpenseForm({
                   onChange={e => setAmount(e.target.value)}
                 />
               </div>
-              {/* </div> */}
+              </div>
               <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-3">
                 <Label htmlFor="date">Date</Label>
@@ -120,7 +121,7 @@ export function AddExpenseForm({
               </div>
               <div className="flex flex-row gap-3">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   className="w-1/2"
                   type="button"
                   onClick={onClose}
