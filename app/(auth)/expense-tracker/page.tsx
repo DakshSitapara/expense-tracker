@@ -97,6 +97,12 @@ export default function ExpenseTracker() {
       <div className="flex flex-col mt-10 px-2 transition-all duration-300 items-center">
         <section className="w-full max-w-2xl">
           <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">Expenses</h2>
+          <div className="text-center text-lg font-semibold mb-4 text-gray-700">
+          Total Expenses: ₹ {expenses.reduce((total, exp) => total + exp.amount, 0)}
+          </div>
+          <div>
+          
+          </div>
           {expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center bg-white rounded-xl shadow border border-gray-100 py-16">
               <svg
