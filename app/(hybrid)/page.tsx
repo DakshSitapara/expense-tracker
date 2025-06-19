@@ -27,15 +27,21 @@ export default function Home() {
           Expense Tracker
         </h1>
       </div>
-      <div className="flex flex-col-3 items-center gap-4 p-10">
-        <Link href="/login" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">Login</Button>
+      <div className="flex flex-col sm:flex-row items-center gap-4 p-10 w-full max-w-md">
+        <Link href="/login" className="flex-1 w-full">
+          <Button className="w-full bg-blue-900 rounded-xl py-6 text-lg font-semibold shadow-md transition hover:scale-105 hover:bg-blue-600">
+        Login
+          </Button>
         </Link>
-        <Link href="/register" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">Register</Button>
+        <Link href="/register" className="flex-1 w-full">
+          <Button className="w-full bg-green-900 rounded-xl py-6 text-lg font-semibold shadow-md transition hover:scale-105 hover:bg-green-600">
+        Register
+          </Button>
         </Link>
-        <Link href="/expense-tracker" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">Expense Tracker</Button>
+        <Link href="/expense-tracker" className="flex-1 w-full">
+          <Button className="w-full bg-gray-900 rounded-xl py-6 text-lg font-semibold shadow-md transition hover:scale-105 hover:bg-gray-700">
+        Expense Tracker
+          </Button>
         </Link>
       </div>
     </main>
