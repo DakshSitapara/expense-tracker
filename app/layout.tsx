@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import DarkModeToggle from "@/components/dark-mode-toggle";
+
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,19 +29,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black dark:bg-[#18181b] dark:text-white`}
       >
         {children}
+        <DarkModeToggle />
         <Toaster
           position="top-center"
           toastOptions={{
         style: {
-          background: "#fff",
-          color: "#222",
+          background: "var(--toast-bg, #fff)",
+          color: "var(--toast-color, #222)",
           borderRadius: "8px",
           boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
           fontFamily: "var(--font-geist-sans), sans-serif",
         },
+        className:
+          "dark:!bg-[#27272a] dark:!text-white !bg-white !text-black",
           }}
         />
       </body>
