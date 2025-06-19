@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AddExpenseForm } from "@/components/add-expense-from";
-import ViewExpense from "@/components/view-expense";
+import ViewExpense from "@/components/view-expense";  
 import type { Expense } from "@/types/expense";
 import { getCategoryColor } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function ExpenseTracker() {
   const [showForm, setShowForm] = useState(false);
@@ -13,6 +15,7 @@ export default function ExpenseTracker() {
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [deleteExpense, setDeleteExpense] = useState<Expense | null>(null);
   const [username, setUsername] = useState<string>("");
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -20,7 +23,7 @@ export default function ExpenseTracker() {
       if (storedUsername) {
         setUsername(JSON.parse(storedUsername).name);
       } else {
-        window.location.href = "/login";
+        router.push("/login");
       }
     }
   });
@@ -63,12 +66,14 @@ export default function ExpenseTracker() {
     if (deleteExpense) {
       setExpenses(prev => prev.filter(exp => exp.id !== deleteExpense.id));
       setDeleteExpense(null);
+      toast.success(`${deleteExpense.title} deleted from List`);
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
-    window.location.href = "/login";
+    toast.success(`${username} Logout successful!`);
+    router.push("/login");
   };
 
   return (
@@ -99,9 +104,6 @@ export default function ExpenseTracker() {
           <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">Expenses</h2>
           <div className="text-center text-lg font-semibold mb-4 text-gray-700">
           Total Expenses: ₹ {expenses.reduce((total, exp) => total + exp.amount, 0)}
-          </div>
-          <div>
-          
           </div>
           {expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center bg-white rounded-xl shadow border border-gray-100 py-16">

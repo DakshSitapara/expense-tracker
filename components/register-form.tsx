@@ -12,13 +12,15 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [error, setError] = useState("");
-  
+  const router = useRouter();
 
 function handleRegister(e: React.FormEvent<HTMLFormElement>) {
   e.preventDefault();
@@ -39,14 +41,15 @@ function handleRegister(e: React.FormEvent<HTMLFormElement>) {
   localStorage.setItem("currentUser", JSON.stringify(user));
   localStorage.setItem("username", user.name);
   setError("");
-  window.location.href = "/expense-tracker";
+  toast.success("Registration successful!");
+  router.push("/expense-tracker");
 }
 
 useEffect(() => {
   if(typeof window !== "undefined"){
     const storedUsername = localStorage.getItem("currentUser");
     if (storedUsername) {
-      window.location.href = "/expense-tracker";
+      router.push("/expense-tracker");
     }
   }
 })

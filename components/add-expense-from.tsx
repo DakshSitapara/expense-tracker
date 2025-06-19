@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import toast from "react-hot-toast";
 
 interface AddExpenseFormProps extends React.ComponentProps<"div"> {
   onClose?: () => void;
@@ -52,6 +53,7 @@ export function AddExpenseForm({
     setDate(new Date().toISOString().split('T')[0]);
     setCategory("");
     if (onClose) onClose();
+    toast.success(`${title} add in List`)
   };
 
   return (

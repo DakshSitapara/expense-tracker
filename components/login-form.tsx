@@ -12,12 +12,15 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [error, setError] = useState("");
+  const router = useRouter();
 
   function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,14 +39,15 @@ export function LoginForm({
     localStorage.setItem("currentUser", JSON.stringify(user));
     localStorage.setItem("username", user.name);
     setError("");
-    window.location.href = "/expense-tracker";
+    toast.success(`Login successful! Welcome, ${user.name}`);
+    router.push("/expense-tracker");
   }
 
   useEffect(() => {
   if(typeof window !== "undefined"){
     const storedUsername = localStorage.getItem("currentUser");
     if (storedUsername) {
-      window.location.href = "/expense-tracker";
+      router.push("/expense-tracker");
     }
   }
 })
