@@ -13,6 +13,11 @@ import { EditExpenseForm } from "@/components/edit-expense-form";
 import { MdDeleteOutline } from "react-icons/md";
 import { FcViewDetails } from "react-icons/fc";
 import { FaRegEdit } from "react-icons/fa";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function ExpenseTracker() {
   const router = useRouter();
@@ -50,12 +55,12 @@ export default function ExpenseTracker() {
     setShowAddForm(false);
   };
 
-  const handleExpenseClick = (expense: Expense) => {
-    closeAllModals();
-    setSelectedExpense(expense);
-  };
+  // const handleExpenseClick = (expense: Expense) => {
+  //   closeAllModals();
+  //   setSelectedExpense(expense);
+  // };
 
-  const handleViewClose = () => setSelectedExpense(null);
+  // const handleViewClose = () => setSelectedExpense(null);
 
   const handleDeleteExpense = (expense: Expense) => {
     closeAllModals();
@@ -189,15 +194,26 @@ export default function ExpenseTracker() {
                       <td className="px-4 py-3 text-gray-900 dark:text-gray-100">{exp.title}</td>
                       <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{new Date(exp.date).toLocaleDateString()}</td>
                       <td className="px-4 py-3 flex justify-center gap-2">
-                        <Button
-                          title="View Expense"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleExpenseClick(exp)}
-                          aria-label="View expense details"
-                        >
-                          <FcViewDetails />
-                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              title="View Expense"
+                              size="sm"
+                              variant="outline"
+                              aria-label="View expense details"
+                              onClick={() => setSelectedExpense(exp)}
+                            >
+                              <FcViewDetails />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="p-0 border-none bg-transparent shadow-none w-auto">
+                            {selectedExpense?.id === exp.id && (
+                              <ViewExpense
+                                expense={selectedExpense}
+                              />
+                            )}
+                          </PopoverContent>
+                        </Popover>
                         <Button
                           title="Edit Expense"
                           size="sm"
@@ -226,7 +242,6 @@ export default function ExpenseTracker() {
         </section>
       </main>
 
-      {/* Add Expense Modal */}
       {showAddForm && (
         <div
           className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm"
@@ -238,7 +253,6 @@ export default function ExpenseTracker() {
         </div>
       )}
 
-      {/* Edit Expense Modal */}
       {editExpense && (
         <div
           className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm"
@@ -259,8 +273,7 @@ export default function ExpenseTracker() {
         </div>
       )}
 
-      {/* View Expense Modal */}
-      {selectedExpense && (
+      {/* {selectedExpense && (
         <div
           className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm"
           onClick={handleViewClose}
@@ -269,13 +282,13 @@ export default function ExpenseTracker() {
             <ViewExpense
               expense={selectedExpense}
               onClose={handleViewClose}
+              onEdit={() => handleEditExpense(selectedExpense)}
               onDelete={() => handleDeleteExpense(selectedExpense)}
             />
           </div>
         </div>
-      )}
+      )} */}
 
-      {/* Delete Confirmation Modal */}
       {deleteExpense && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm"

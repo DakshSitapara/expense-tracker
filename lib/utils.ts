@@ -5,18 +5,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-  const categoryColors: Record<string, string> = {
-    Food: "bg-gradient-to-r from-green-900 via-green-500 to-green-200 dark:from-green-900 dark:via-green-700 dark:to-green-500",
-    Travel: "bg-gradient-to-r from-blue-900 via-blue-500 to-blue-200 dark:from-blue-900 dark:via-blue-700 dark:to-blue-500",
-    Shopping: "bg-gradient-to-r from-pink-900 via-pink-500 to-pink-200 dark:from-pink-900 dark:via-pink-700 dark:to-pink-500",
-    Entertainment: "bg-gradient-to-r from-yellow-900 via-yellow-500 to-yellow-200 dark:from-yellow-900 dark:via-yellow-700 dark:to-yellow-500",
-    Other: "bg-gradient-to-r from-gray-700 via-gray-400 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-500",
-  };
-  function getCategoryColor(category: string | undefined) {
-    return category
-      ? categoryColors[category] ||
-          "bg-gradient-to-r from-gray-700 via-gray-400 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-500"
-      : "bg-gradient-to-r from-gray-700 via-gray-400 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-500";
-  }
+const categoryColors: Record<string, string> = {
+  Food: "bg-gradient-to-br from-lime-900 via-emerald-600 to-teal-400 dark:from-lime-800 dark:via-emerald-500 dark:to-teal-300",
+  Travel: "bg-gradient-to-br from-indigo-900 via-indigo-600 to-purple-400 dark:from-indigo-800 dark:via-indigo-500 dark:to-purple-300",
+  Shopping: "bg-gradient-to-br from-red-900 via-rose-600 to-orange-400 dark:from-red-800 dark:via-rose-500 dark:to-orange-300",
+  Entertainment: "bg-gradient-to-br from-yellow-900 via-amber-600 to-lime-300 dark:from-yellow-800 dark:via-amber-500 dark:to-lime-200",
+  Other: "bg-gradient-to-br from-slate-800 via-gray-500 to-zinc-300 dark:from-slate-900 dark:via-gray-600 dark:to-zinc-400",
+};
+
+function getCategoryColor(category: string | undefined) {
+  return category
+    ? categoryColors[category] ||
+        "bg-gradient-to-br from-slate-800 via-gray-500 to-zinc-300 dark:from-slate-900 dark:via-gray-600 dark:to-zinc-400"
+    : "bg-gradient-to-br from-slate-800 via-gray-500 to-zinc-300 dark:from-slate-900 dark:via-gray-600 dark:to-zinc-400";
+}
 
   export { getCategoryColor };

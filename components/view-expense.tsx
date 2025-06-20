@@ -1,44 +1,34 @@
-import { Button } from "@/components/ui/button";
 import type { Expense } from "@/types/expense";
-import { X } from "lucide-react";
 import { getCategoryColor } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface ViewExpenseProps {
   expense: Expense;
-  onClose: () => void;
-  onDelete: () => void;
+
 }
 
-export default function ViewExpense({ expense, onClose, onDelete }: ViewExpenseProps) {
+export default function ViewExpense({ expense }: ViewExpenseProps) {
   return (
-    <div
-      className={`inline-block rounded-lg shadow-lg p-5 min-w-[300px] max-w-md ${getCategoryColor(expense.category)}`}
+    <motion.div
+      initial={{ opacity: 0, y: -5 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -5 }}
+      transition={{ duration: 0.2 }}
+      className={`rounded-xl shadow-md p-4 w-[100px] sm:w-[200px] ${getCategoryColor(expense.category)} border border-white/10 dark:border-white/20 backdrop-blur-sm`}
       aria-label={expense.category}
     >
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-bold">{expense.title}</h3>
-        <Button 
-          variant={"ghost"}
-          className="size-5" 
-          size={"icon"}
-          onClick={onClose}><X /></Button>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-md font-semibold">
+          {expense.title}
+        </h3>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1 text-sm">
         <p><strong>Amount:</strong> ₹ {expense.amount}</p>
         <p><strong>Date:</strong> {new Date(expense.date).toLocaleDateString()}</p>
         {expense.category && (
-          <p className="flex items-center gap-2 mt-2">
-            <span><strong>Category:</strong> {expense.category}</span>
-          </p>
+          <p><strong>Category:</strong> {expense.category}</p>
         )}
       </div>
-      <Button
-        variant={"destructive"}
-        className="mt-4 w-full"
-        onClick={onDelete}
-      >
-        Delete
-      </Button>
-    </div>
+    </motion.div>
   );
 }
