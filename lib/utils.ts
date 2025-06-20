@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
     Travel: "bg-blue-100 dark:bg-blue-900",
     Shopping: "bg-pink-100 dark:bg-pink-900",
     Entertainment: "bg-yellow-100 dark:bg-yellow-900",
-    Other: "bg-gray-200 dark:bg-gray-800",
+    Other: "bg-gray-100 dark:bg-gray-700",
   };
   function getCategoryColor(category: string | undefined) {
     return category ? categoryColors[category] || "bg-gray-100 dark:bg-gray-700" : "bg-gray-100 dark:bg-gray-700";

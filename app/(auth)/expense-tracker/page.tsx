@@ -1,58 +1,37 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AddExpenseForm } from "@/components/add-expense-from";
-import ViewExpense from "@/components/view-expense";  
+import ViewExpense from "@/components/view-expense";
 import type { Expense } from "@/types/expense";
 import { getCategoryColor } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import DarkModeToggle from "@/components/dark-mode-toggle";
+import { EditExpenseForm } from "@/components/edit-expense-from";
+import { MdDeleteOutline } from "react-icons/md";
+import { FcViewDetails } from "react-icons/fc";
+import { FaRegEdit } from "react-icons/fa";
 
 export default function ExpenseTracker() {
-  const [showForm, setShowForm] = useState(false);
+  const router = useRouter();
+
+  const [showAddForm, setShowAddForm] = useState(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [deleteExpense, setDeleteExpense] = useState<Expense | null>(null);
+  const [editExpense, setEditExpense] = useState<Expense | null>(null);
   const [username, setUsername] = useState<string>("");
-  const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUsername = localStorage.getItem("currentUser");
-      if (storedUsername) {
-        setUsername(JSON.parse(storedUsername).name);
-      } else {
-        router.push("/login");
-      }
-    }
-  });
-
-  useEffect(() => {
-    const storedUsername = localStorage.getItem("username") || "";
-    setUsername(storedUsername);
-
-    if (storedUsername) {
-      const storedExpenses = localStorage.getItem(`expenses_${storedUsername}`);
-      if (storedExpenses) {
-        setExpenses(JSON.parse(storedExpenses));
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (username) {
-      localStorage.setItem(`expenses_${username}`, JSON.stringify(expenses));
-    }
-  }, [expenses, username]);
-
-  const handleAddExpenseClick = () => setShowForm(true);
-  const handleFormClose = () => setShowForm(false);
+  const handleAddExpenseClick = () => setShowAddForm(true);
+  const handleFormClose = () => setShowAddForm(false);
+  const handleEditExpense = (expense: Expense) => setEditExpense(expense);
+  const handleEditFormClose = () => setEditExpense(null);
 
   const handleAddExpense = (expense: Expense) => {
     setExpenses(prev => [expense, ...prev]);
-    setShowForm(false);
+    setShowAddForm(false);
   };
 
   const handleExpenseClick = (expense: Expense) => setSelectedExpense(expense);
@@ -61,131 +40,191 @@ export default function ExpenseTracker() {
   const handleDeleteExpense = (expense: Expense) => {
     setDeleteExpense(expense);
     setSelectedExpense(null);
+    setEditExpense(null);
   };
 
   const handleExpenseDelete = () => {
     if (deleteExpense) {
       setExpenses(prev => prev.filter(exp => exp.id !== deleteExpense.id));
-      setDeleteExpense(null);
       toast.success(`${deleteExpense.title} deleted from List`);
+      setDeleteExpense(null);
     }
   };
-
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     toast.success(`${username} Logout successful!`);
     router.push("/login");
   };
 
+    useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("currentUser");
+      if (storedUser) {
+        setUsername(JSON.parse(storedUser).name);
+      } else {
+        router.push("/login");
+      }
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (username) {
+      const storedExpenses = localStorage.getItem(`expenses_${username}`);
+      if (storedExpenses) {
+        setExpenses(JSON.parse(storedExpenses));
+      }
+    }
+  }, [username]);
+
+  useEffect(() => {
+    if (username) {
+      localStorage.setItem(`expenses_${username}`, JSON.stringify(expenses));
+    }
+  }, [expenses, username]);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative transition-colors">
-      <nav className="bg-white dark:bg-gray-800 shadow sticky top-0 z-10 transition-colors">
-        <div className="flex h-16 items-center text-2xl font-bold justify-between mx-auto max-w-9xl px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors">
+      <nav className="bg-white/80 dark:bg-gray-900/80 shadow sticky top-0 z-20 backdrop-blur">
+        <div className="flex h-16 items-center justify-between mx-auto px-4">
           <div className="flex items-center gap-4">
             {username && (
-              <span className="text-base font-normal text-gray-500 dark:text-gray-300">
+              <span className="text-base font-medium text-gray-600 dark:text-gray-300">
                 Welcome, <span className="font-semibold text-primary dark:text-primary-light">{username}</span>
               </span>
             )}
           </div>
           <div className="flex gap-3">
-            <Button onClick={handleAddExpenseClick}>
+            <Button onClick={handleAddExpenseClick} className="font-semibold">
               + Add Expense
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleLogout}
-            >
+            <Button variant="destructive" onClick={handleLogout}>
               Log Out
             </Button>
             <DarkModeToggle />
           </div>
         </div>
       </nav>
-      <div className="flex flex-col mt-10 px-2 transition-all duration-300 items-center">
-        <section className="w-full max-w-2xl">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200 text-center">Expenses</h2>
-          <div className="text-center text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
-            Total Expenses: ₹ {expenses.reduce((total, exp) => total + exp.amount, 0)}
+      <main className="flex flex-col items-center mt-10 px-2">
+        <section className="w-full max-w-4xl">
+          <h2 className="text-2xl font-bold mb-4 text-gray-700 dark:text-gray-200 text-center">Expense Tracker</h2>
+          <div className="text-center text-lg font-semibold mb-6 text-gray-700 dark:text-gray-200">
+            Total Expenses: <span className="text-primary dark:text-primary-light">₹ {expenses.reduce((total, exp) => total + exp.amount, 0)}</span>
           </div>
           {expenses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 py-16">
-              <svg
-                className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+            <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 py-16">
+              <svg className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-gray-400 dark:text-gray-500 text-lg text-center">
                 No expenses yet.<br />
-                <span className="font-semibold text-primary dark:text-primary-light">
-                  Click &quot;<span onClick={handleAddExpenseClick}>+ Add Expense&quot;</span>
-                </span> to get started!
+                <span className="font-semibold text-primary dark:text-primary-light cursor-pointer" onClick={handleAddExpenseClick}>
+                  Click "+ Add Expense" to get started!
+                </span>
               </p>
             </div>
           ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {expenses.map(exp => (
-                <li key={exp.id}>
-                  <button
-                    className={`
-                      w-full rounded-xl shadow flex flex-row items-center justify-between border border-gray-100 dark:border-gray-700
-                      hover:brightness-95 dark:hover:brightness-110 transition p-4 focus:outline-none
-                      ${getCategoryColor(exp.category || "Uncategorized")}
-                    `}
-                    onClick={() => handleExpenseClick(exp)}
-                  >
-                    <div>
-                      <div className="font-semibold text-lg text-gray-900 dark:text-gray-100">{exp.title}</div>
-                      <div className="text-gray-700 dark:text-gray-300 text-xs mt-1">
-                        {exp.category || "Uncategorized"}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-primary dark:text-primary-light font-bold text-lg">₹ {exp.amount}</span>
-                      <span className="text-gray-800 dark:text-gray-200 text-xs">{new Date(exp.date).toLocaleDateString()}</span>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="overflow-x-auto rounded-xl shadow border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-100 dark:bg-gray-900 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Category</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Title</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {expenses.map((exp, idx) => (
+                    <tr key={exp.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                      <td className="px-4 py-3 text-gray-900 dark:text-gray-100">{idx + 1}</td>
+                      <td className="px-4 py-3 text-primary dark:text-primary-light font-bold">₹ {exp.amount}</td>
+                      <td className={`px-4 py-3`}>
+                        <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getCategoryColor(exp.category || "Other")}`}>
+                          {exp.category || "Other"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-900 dark:text-gray-100">{exp.title}</td>
+                      <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{new Date(exp.date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 flex justify-center gap-2">
+                        <Button title="View Expense" size="sm" variant="outline" onClick={() => setSelectedExpense(exp)}><FcViewDetails /></Button>
+                        <Button title="Edit Expense" size="sm" variant="outline" onClick={() => handleEditExpense(exp)}><FaRegEdit /></Button>
+                        <Button title="Delete Expense" size="sm" variant="destructive" onClick={() => handleDeleteExpense(exp)}><MdDeleteOutline /></Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
-      </div>
-      {showForm && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md">
-            <AddExpenseForm
-              onClose={handleFormClose}
-              onAddExpense={handleAddExpense}
+      </main>
+
+      {/* Add Expense Modal */}
+      {showAddForm && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm"
+          onClick={handleFormClose}
+        >
+          <div onClick={e => e.stopPropagation()}>
+            <AddExpenseForm onClose={handleFormClose} onAddExpense={handleAddExpense} />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Expense Modal */}
+      {editExpense && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm"
+          onClick={handleEditFormClose}
+        >
+          <div onClick={e => e.stopPropagation()}>
+            <EditExpenseForm
+              onClose={handleEditFormClose}
+              onEditExpense={(updated) => {
+                setExpenses(prev =>
+                  prev.map(exp => exp.id === updated.id ? updated : exp)
+                );
+                setEditExpense(null);
+              }}
+              expenseToEdit={editExpense}
             />
           </div>
         </div>
       )}
+
+      {/* View Expense Modal */}
       {selectedExpense && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm">
-          <ViewExpense
-            expense={selectedExpense}
-            onClose={handleViewClose}
-            onDelete={() => handleDeleteExpense(selectedExpense)}
-          />
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm"
+          onClick={handleViewClose}
+        >
+          <div onClick={e => e.stopPropagation()}>
+            <ViewExpense
+              expense={selectedExpense}
+              onClose={handleViewClose}
+              onDelete={() => handleDeleteExpense(selectedExpense)}
+            />
+          </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
       {deleteExpense && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm"
+          onClick={() => setDeleteExpense(null)}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 max-w-sm w-full"
+            onClick={e => e.stopPropagation()}
+          >
             <h3 className="text-xl font-bold mb-2 text-center text-red-600 dark:text-red-400">Delete Expense</h3>
-            <p className="mb-6 text-gray-700 dark:text-gray-200">
+            <p className="mb-6 text-gray-700 dark:text-gray-200 text-center">
               Are you sure you want to delete <span className="font-semibold">{deleteExpense.title}</span>?
             </p>
-            <div className="flex justify-end gap-2 mt-6">
+            <div className="flex justify-center gap-4 mt-6">
               <Button variant="outline" onClick={() => setDeleteExpense(null)}>
                 Cancel
               </Button>

@@ -1,24 +1,43 @@
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+"use client"
+
+import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import type { Expense } from "@/types/expense";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import toast from "react-hot-toast";
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import toast from "react-hot-toast"
+import type { Expense } from "@/types/expense"
+
+const FormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  amount: z.string().min(1, "Amount is required"),
+  date: z.date({ required_error: "Date is required" }),
+  category: z.string().min(1, "Category is required"),
+})
 
 interface AddExpenseFormProps extends React.ComponentProps<"div"> {
   onClose?: () => void;
@@ -31,113 +50,159 @@ export function AddExpenseForm({
   onAddExpense,
   ...props
 }: AddExpenseFormProps) {
-  const [title, setTitle] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [category, setCategory] = useState("");
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      title: "",
+      amount: "",
+      date: new Date(),
+      category: "",
+    },
+  })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title || !amount || !date) return;
+  function onSubmit(data: z.infer<typeof FormSchema>) {
     if (onAddExpense) {
       onAddExpense({
         id: Date.now().toString(),
-        title: title.trim(),
-        amount: parseFloat(amount),
-        date,
-        category: category.trim(),
-      });
+        title: data.title.trim(),
+        amount: parseFloat(data.amount),
+        date: data.date.toISOString().split('T')[0],
+        category: data.category.trim() || "Other",
+      })
     }
-    setTitle("");
-    setAmount("");
-    setDate(new Date().toISOString().split('T')[0]);
-    setCategory("");
-    if (onClose) onClose();
-    toast.success(`${title} add in List`)
-  };
+    form.reset()
+    if (onClose) onClose()
+    toast.success(`${data.title} added to List`)
+  }
 
   return (
-    <div className={cn("flex flex-col gap-6 items-center", className)} {...props}>
-      <Card className="w-[80%]">
-        <CardHeader>
-          <CardTitle className="text-center">Add Expense</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-2 gap-3">   
-              <div className="grid gap-3">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  type="text"
-                  placeholder="Expense title"
-                  required
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  autoFocus
+    <Form {...form}>
+      <div
+        className={cn("flex flex-col gap-6 items-center", className)}
+        {...props}
+      >
+        <Card className="w-[90%]" >
+          <CardHeader>
+            <CardTitle className="text-center">Add Expense</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Expense title" {...field} autoFocus />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="amount">Amount</Label>
-                <Input 
-                  id="amount" 
-                  type="number" 
-                  min={0}
-                  step="1"
-                  placeholder="₹ 0"
-                  required 
-                  value={amount}
-                  onChange={e => setAmount(e.target.value)}
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="1"
+                          placeholder="₹ 0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-3">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  required
-                  value={date}
-                  onChange={e => setDate(e.target.value)} 
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                                date > new Date() ||
+                                date < new Date(Date.now() - 2592000000)
+                            }
+                            captionLayout="dropdown"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl className="w-full">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a Category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="Food">Food</SelectItem>
+                            <SelectItem value="Travel">Travel</SelectItem>
+                            <SelectItem value="Shopping">Shopping</SelectItem>
+                            <SelectItem value="Entertainment">Entertainment</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div  className="grid gap-3">
-                <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="Food">Food</SelectItem>
-                      <SelectItem value="Travel">Travel</SelectItem>
-                      <SelectItem value="Shopping">Shopping</SelectItem>
-                      <SelectItem value="Entertainment">Entertainment</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              </div>
-              <div className="flex flex-row gap-3">
+              <div className="flex flex-row gap-3 justify-end">
                 <Button
                   variant="outline"
-                  className="w-1/2"
                   type="button"
                   onClick={onClose}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="w-1/2">
+                <Button type="submit" >
                   Add Expense
                 </Button>
               </div>
-            </div>         
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </Form>
+  )
 }
