@@ -35,7 +35,12 @@ import { useEffect } from "react"
 
 const FormSchema = z.object({
     title: z.string().min(1, "Title is required"),
-    amount: z.string().min(1, "Amount is required"),
+    amount: z
+        .string()
+        .min(1, "Amount is required")
+        .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, {
+            message: "Amount must be a valid number greater than or equal to 0",
+        }),
     date: z.date({ required_error: "Date is required" }),
     category: z.string().min(1, "Category is required"),
 })
@@ -59,9 +64,21 @@ export function EditExpenseForm({
             title: "",
             amount: "",
             date: new Date(),
-            category: "",
+            category: "Other",
         },
     });
+
+    useEffect(() => {
+        if (expenseToEdit) {
+            // Ensure category is always a valid string
+            form.reset({
+                title: expenseToEdit.title,
+                amount: expenseToEdit.amount.toString(),
+                date: new Date(expenseToEdit.date),
+                category: expenseToEdit.category || "Other",
+            });
+        }
+    }, [expenseToEdit, form]);
 
     function onSubmit(data: z.infer<typeof FormSchema>) {
         if (onEditExpense && expenseToEdit) {
@@ -69,28 +86,15 @@ export function EditExpenseForm({
                 ...expenseToEdit,
                 title: data.title.trim(),
                 amount: parseFloat(data.amount),
-                date: data.date.toISOString().split('T')[0],
+                // Save date as local yyyy-MM-dd (no timezone bug)
+                date: format(data.date, "yyyy-MM-dd"),
                 category: data.category.trim(),
             });
             toast.success(`${data.title} updated`);
         }
         form.reset();
         if (onClose) onClose();
-        form.reset();
     }
-
-    
-useEffect(() => {
-  if (expenseToEdit) {
-    form.reset({
-      title: expenseToEdit.title,
-      amount: expenseToEdit.amount.toString(),
-      date: new Date(expenseToEdit.date),
-      category: expenseToEdit.category,
-    });
-    console.log(expenseToEdit.category)
-  }
-}, [expenseToEdit, form]);
 
     return (
         <Form {...form}>
@@ -99,7 +103,7 @@ useEffect(() => {
                 {...props}
                 onClick={(e) => e.stopPropagation()}
             >
-                <Card className="w-[90%]" >
+                <Card className="w-[90%]">
                     <CardHeader>
                         <CardTitle className="text-center">Edit Expense</CardTitle>
                     </CardHeader>
@@ -171,8 +175,7 @@ useEffect(() => {
                                                         }
                                                         onSelect={field.onChange}
                                                         disabled={(date) =>
-                                                            date > new Date() ||
-                                                            date < new Date(Date.now() - 2592000000)
+                                                            date > new Date() || date < new Date("2000-01-01")
                                                         }
                                                         captionLayout="dropdown"
                                                     />
@@ -182,32 +185,32 @@ useEffect(() => {
                                         </FormItem>
                                     )}
                                 />
-                                    <FormField
+                                <FormField
                                     control={form.control}
                                     name="category"
                                     render={({ field }) => (
                                         <FormItem>
-                                        <FormLabel>Category</FormLabel>
-                                        <Select value={field.value} onValueChange={field.onChange} >
-                                            <FormControl className="w-full">
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a Category" />
-                                            </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                            <SelectGroup>
-                                                <SelectItem value="Food">Food</SelectItem>
-                                                <SelectItem value="Travel">Travel</SelectItem>
-                                                <SelectItem value="Shopping">Shopping</SelectItem>
-                                                <SelectItem value="Entertainment">Entertainment</SelectItem>
-                                                <SelectItem value="Other">Other</SelectItem>
-                                            </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
+                                            <FormLabel>Category</FormLabel>
+                                            <Select value={field.value} onValueChange={field.onChange}>
+                                                <FormControl className="w-full">
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a Category" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        <SelectItem value="Food">Food</SelectItem>
+                                                        <SelectItem value="Travel">Travel</SelectItem>
+                                                        <SelectItem value="Shopping">Shopping</SelectItem>
+                                                        <SelectItem value="Entertainment">Entertainment</SelectItem>
+                                                        <SelectItem value="Other">Other</SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
-                                    />
+                                />
                             </div>
                             <div className="flex flex-row gap-3 justify-end">
                                 <Button
@@ -217,7 +220,7 @@ useEffect(() => {
                                 >
                                     Cancel
                                 </Button>
-                                <Button type="submit" >
+                                <Button type="submit">
                                     Save Changes
                                 </Button>
                             </div>

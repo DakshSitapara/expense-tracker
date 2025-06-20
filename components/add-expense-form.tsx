@@ -31,10 +31,16 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import toast from "react-hot-toast"
 import type { Expense } from "@/types/expense"
+import { v4 as uuidv4 } from "uuid"
 
 const FormSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  amount: z.string().min(1, "Amount is required"),
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, {
+      message: "Amount must be a valid number greater than or equal to 0",
+    }),
   date: z.date({ required_error: "Date is required" }),
   category: z.string().min(1, "Category is required"),
 })
@@ -56,23 +62,23 @@ export function AddExpenseForm({
       title: "",
       amount: "",
       date: new Date(),
-      category: "",
+      category: "Other",
     },
   })
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     if (onAddExpense) {
       onAddExpense({
-        id: Date.now().toString(),
+        id: uuidv4(),
         title: data.title.trim(),
         amount: parseFloat(data.amount),
-        date: data.date.toISOString().split('T')[0],
-        category: data.category.trim() || "Other",
+        date: format(data.date, "yyyy-MM-dd"),
+        category: data.category.trim(),
       })
     }
+    toast.success(`${data.title} added to List`)
     form.reset()
     if (onClose) onClose()
-    toast.success(`${data.title} added to List`)
   }
 
   return (
@@ -149,8 +155,7 @@ export function AddExpenseForm({
                             selected={field.value}
                             onSelect={field.onChange}
                             disabled={(date) =>
-                                date > new Date() ||
-                                date < new Date(Date.now() - 2592000000)
+                              date > new Date() || date < new Date("2000-01-01")
                             }
                             captionLayout="dropdown"
                           />

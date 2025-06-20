@@ -17,17 +17,22 @@ export default function DarkModeToggle() {
         }
     }, []);
 
+    let toastId: string | undefined;
+
     const toggle = () => {
+        if (toastId) {
+            toast.dismiss(toastId);
+        }
         if (dark) {
             document.documentElement.classList.remove("dark");
             localStorage.setItem("theme", "light");
             setDark(false);
-            toast("☀️ Light mode enabled");
+            toastId = toast("☀️ Light mode enabled");
         } else {
             document.documentElement.classList.add("dark");
             localStorage.setItem("theme", "dark");
             setDark(true);
-            toast("🌙 Dark mode enabled");
+            toastId = toast("🌙 Dark mode enabled");
         }
     };
 

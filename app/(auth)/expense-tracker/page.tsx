@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { AddExpenseForm } from "@/components/add-expense-from";
+import { AddExpenseForm } from "@/components/add-expense-form";
 import ViewExpense from "@/components/view-expense";
 import type { Expense } from "@/types/expense";
 import { getCategoryColor } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import DarkModeToggle from "@/components/dark-mode-toggle";
-import { EditExpenseForm } from "@/components/edit-expense-from";
+import { EditExpenseForm } from "@/components/edit-expense-form";
 import { MdDeleteOutline } from "react-icons/md";
 import { FcViewDetails } from "react-icons/fc";
 import { FaRegEdit } from "react-icons/fa";
@@ -24,9 +24,25 @@ export default function ExpenseTracker() {
   const [editExpense, setEditExpense] = useState<Expense | null>(null);
   const [username, setUsername] = useState<string>("");
 
-  const handleAddExpenseClick = () => setShowAddForm(true);
+  const closeAllModals = () => {
+    setShowAddForm(false);
+    setEditExpense(null);
+    setSelectedExpense(null);
+    setDeleteExpense(null);
+  };
+
+  const handleAddExpenseClick = () => {
+    closeAllModals();
+    setShowAddForm(true);
+  };
+
   const handleFormClose = () => setShowAddForm(false);
-  const handleEditExpense = (expense: Expense) => setEditExpense(expense);
+
+  const handleEditExpense = (expense: Expense) => {
+    closeAllModals();
+    setEditExpense(expense);
+  };
+
   const handleEditFormClose = () => setEditExpense(null);
 
   const handleAddExpense = (expense: Expense) => {
@@ -34,13 +50,16 @@ export default function ExpenseTracker() {
     setShowAddForm(false);
   };
 
-  const handleExpenseClick = (expense: Expense) => setSelectedExpense(expense);
+  const handleExpenseClick = (expense: Expense) => {
+    closeAllModals();
+    setSelectedExpense(expense);
+  };
+
   const handleViewClose = () => setSelectedExpense(null);
 
   const handleDeleteExpense = (expense: Expense) => {
+    closeAllModals();
     setDeleteExpense(expense);
-    setSelectedExpense(null);
-    setEditExpense(null);
   };
 
   const handleExpenseDelete = () => {
@@ -50,18 +69,29 @@ export default function ExpenseTracker() {
       setDeleteExpense(null);
     }
   };
+
+    const totalExpenses = useMemo(() => {
+    return expenses.reduce((total, exp) => total + exp.amount, 0);
+  }, [expenses]);
+
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     toast.success(`${username} Logout successful!`);
     router.push("/login");
   };
 
-    useEffect(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("currentUser");
-      if (storedUser) {
-        setUsername(JSON.parse(storedUser).name);
-      } else {
+      try {
+        const storedUser = localStorage.getItem("currentUser");
+        if (storedUser) {
+          setUsername(JSON.parse(storedUser).name);
+        } else {
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Error accessing localStorage:", error);
+        toast.error("Failed to access user data");
         router.push("/login");
       }
     }
@@ -69,18 +99,29 @@ export default function ExpenseTracker() {
 
   useEffect(() => {
     if (username) {
-      const storedExpenses = localStorage.getItem(`expenses_${username}`);
-      if (storedExpenses) {
-        setExpenses(JSON.parse(storedExpenses));
+      try {
+        const storedExpenses = localStorage.getItem(`expenses_${username}`);
+        if (storedExpenses) {
+          setExpenses(JSON.parse(storedExpenses));
+        }
+      } catch (error) {
+        console.error("Error reading expenses from localStorage:", error);
+        toast.error("Failed to load expenses");
       }
     }
   }, [username]);
 
   useEffect(() => {
     if (username) {
-      localStorage.setItem(`expenses_${username}`, JSON.stringify(expenses));
+      try {
+        localStorage.setItem(`expenses_${username}`, JSON.stringify(expenses));
+      } catch (error) {
+        console.error("Error saving expenses to localStorage:", error);
+        toast.error("Failed to save expenses");
+      }
     }
   }, [expenses, username]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors">
@@ -108,7 +149,7 @@ export default function ExpenseTracker() {
         <section className="w-full max-w-4xl">
           <h2 className="text-2xl font-bold mb-4 text-gray-700 dark:text-gray-200 text-center">Expense Tracker</h2>
           <div className="text-center text-lg font-semibold mb-6 text-gray-700 dark:text-gray-200">
-            Total Expenses: <span className="text-primary dark:text-primary-light">₹ {expenses.reduce((total, exp) => total + exp.amount, 0)}</span>
+            Total Expenses: <span className="text-primary dark:text-primary-light">₹ {totalExpenses}</span>
           </div>
           {expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 py-16">
@@ -148,9 +189,33 @@ export default function ExpenseTracker() {
                       <td className="px-4 py-3 text-gray-900 dark:text-gray-100">{exp.title}</td>
                       <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{new Date(exp.date).toLocaleDateString()}</td>
                       <td className="px-4 py-3 flex justify-center gap-2">
-                        <Button title="View Expense" size="sm" variant="outline" onClick={() => setSelectedExpense(exp)}><FcViewDetails /></Button>
-                        <Button title="Edit Expense" size="sm" variant="outline" onClick={() => handleEditExpense(exp)}><FaRegEdit /></Button>
-                        <Button title="Delete Expense" size="sm" variant="destructive" onClick={() => handleDeleteExpense(exp)}><MdDeleteOutline /></Button>
+                        <Button
+                          title="View Expense"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleExpenseClick(exp)}
+                          aria-label="View expense details"
+                        >
+                          <FcViewDetails />
+                        </Button>
+                        <Button
+                          title="Edit Expense"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditExpense(exp)}
+                          aria-label="Edit expense"
+                        >
+                          <FaRegEdit />
+                        </Button>
+                        <Button
+                          title="Delete Expense"
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteExpense(exp)}
+                          aria-label="Delete expense"
+                        >
+                          <MdDeleteOutline />
+                        </Button>
                       </td>
                     </tr>
                   ))}
