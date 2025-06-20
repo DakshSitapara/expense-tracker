@@ -41,7 +41,7 @@ function handleRegister(e: React.FormEvent<HTMLFormElement>) {
   localStorage.setItem("currentUser", JSON.stringify(user));
   localStorage.setItem("username", user.name);
   setError("");
-  toast.success("Registration successful!");
+  toast.success(`Registration successful! Welcome, ${user.name}`);
   router.push("/expense-tracker");
 }
 

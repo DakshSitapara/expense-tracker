@@ -1,8 +1,8 @@
-// 'use client'
+'use client'
 
+import {useState, useEffect} from "react";
 import Link from "next/link"
 import { Button } from "@/components/ui/button";
-// import { useEffect } from "react";
 
 export default function Home() {
 
@@ -14,9 +14,34 @@ export default function Home() {
 //     }
 //   }
 // })
+const [username, setUsername] = useState<string>("");
+const [islogine, setIslogine] = useState<boolean>(false);
+
+useEffect(() => {
+  if(typeof window !== "undefined"){
+    const storedUsername = localStorage.getItem("currentUser");
+    if (storedUsername) {
+      setUsername(JSON.parse(storedUsername).name);
+    }
+  }
+})
+
+useEffect(() => {
+  if(typeof window !== "undefined"){
+    const storedUsername = localStorage.getItem("currentUser");
+    if (storedUsername) {
+      setIslogine(true);
+    }
+  }
+})
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10 sm:px-8 md:px-16 lg:px-24">
+      <div className="flex flex-col-1 gap-2 absolute top-4 right-4 z-50 mt-1">
+      <Link href="/expense-tracker">
+        {username}
+      </Link>
+      </div>
       <div className="relative flex flex-col items-center w-full">
                       <h1 className="text-4xl md:text-2xl  font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-800 to-gray-900 dark:from-white dark:via-blue-300 dark:to-white animate-gradient-x pb-2">
             Track your Expense with <span className="font-bold" />

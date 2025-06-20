@@ -39,7 +39,7 @@ export function LoginForm({
     localStorage.setItem("currentUser", JSON.stringify(user));
     localStorage.setItem("username", user.name);
     setError("");
-    toast.success(`Login successful! Welcome, ${user.name}`);
+    toast.success(`Login successful! Welcome Back, ${user.name}`);
     router.push("/expense-tracker");
   }
 
