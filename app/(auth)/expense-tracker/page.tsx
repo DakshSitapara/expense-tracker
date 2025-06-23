@@ -1,19 +1,21 @@
 'use client';
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AddExpenseForm } from "@/components/add-expense-form";
-import ViewExpense from "@/components/view-expense";
-import type { Expense } from "@/types/expense";
-import { getCategoryColor } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import DarkModeToggle from "@/components/dark-mode-toggle";
 import { EditExpenseForm } from "@/components/edit-expense-form";
+import ViewExpense from "@/components/view-expense";
+import FilterExpense from "@/components/filter-expense";
+import DarkModeToggle from "@/components/dark-mode-toggle";
+import { getCategoryColor } from "@/lib/utils";
 import { MdDeleteOutline } from "react-icons/md";
 import { FcViewDetails } from "react-icons/fc";
 import { FaRegEdit } from "react-icons/fa";
-import {ChevronLeft, ChevronRight} from "lucide-react";
+import { LuClipboardCopy } from "react-icons/lu";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import toast from "react-hot-toast";
+import { format } from "date-fns";
 import {
   Popover,
   PopoverContent,
@@ -26,11 +28,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import FilterExpense from "@/components/filter-expense";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Expense } from "@/types/expense";
+import {MoreVertical} from "lucide-react";
 
 export default function ExpenseTracker() {
-  const router = useRouter();
 
+  const router = useRouter();
   const [showAddForm, setShowAddForm] = useState(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
@@ -40,9 +52,21 @@ export default function ExpenseTracker() {
   const [username, setUsername] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [loading, setLoading] = useState(true);
+
   const maxRows = expenses.length;
   const pageOptions = [5, 10, 20, 50].filter(opt => opt < maxRows);
-    if (!pageOptions.includes(maxRows) && maxRows > 0) pageOptions.push(maxRows);
+  if (!pageOptions.includes(maxRows) && maxRows > 0) pageOptions.push(maxRows);
+
+  const totalExpenses = useMemo(
+    () => filteredExpenses.reduce((total, exp) => total + exp.amount, 0),
+    [filteredExpenses]
+  );
+  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+  const paginatedExpenses = filteredExpenses.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const closeAllModals = () => {
     setShowAddForm(false);
@@ -66,10 +90,12 @@ export default function ExpenseTracker() {
   const handleEditFormClose = () => setEditExpense(null);
 
   const handleAddExpense = (expense: Expense) => {
+    setLoading(true);
     const updated = [expense, ...expenses];
     setExpenses(updated);
     setFilteredExpenses(updated);
     setShowAddForm(false);
+    setTimeout(() => setLoading(false), 600);
   };
 
   const handleDeleteExpense = (expense: Expense) => {
@@ -87,16 +113,6 @@ export default function ExpenseTracker() {
     }
   };
 
-  const totalExpenses = useMemo(() => {
-    return filteredExpenses.reduce((total, exp) => total + exp.amount, 0);
-  }, [filteredExpenses]);
-
-  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
-  const paginatedExpenses = filteredExpenses.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     toast.success(`${username} logged out`);
@@ -113,12 +129,15 @@ export default function ExpenseTracker() {
   }, [router]);
 
   useEffect(() => {
+    setLoading(true);
+    if (!username) return;
     const stored = localStorage.getItem(`expenses_${username}`);
     if (stored) {
       const parsed = JSON.parse(stored);
       setExpenses(parsed);
       setFilteredExpenses(parsed);
     }
+    setTimeout(() => setLoading(false), 600);
   }, [username]);
 
   useEffect(() => {
@@ -128,11 +147,17 @@ export default function ExpenseTracker() {
   }, [expenses, username]);
 
   useEffect(() => {
-  setCurrentPage(1);
-}, [filteredExpenses, itemsPerPage]);
+    setCurrentPage(1);
+  }, [filteredExpenses, itemsPerPage]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 transition">
+    <div className="relative min-h-screen">
+      {/* Background */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]">
+        <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[180px] w-[180px] sm:h-[250px] sm:w-[250px] md:h-[310px] md:w-[310px] rounded-full opacity-20 blur-[80px] md:blur-[100px]"></div>
+      </div>
+
+      {/* Header */}
       <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 shadow-md backdrop-blur-sm">
         <div className="max-w-10xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
@@ -146,128 +171,190 @@ export default function ExpenseTracker() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-10">
+      {/* Main */}
+      <main className="max-w-7xl mx-auto px-4 py-10 items-center">
         <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">Expense Dashboard</h2>
         <p className="text-center text-lg font-medium text-gray-600 dark:text-gray-300 mb-8">
           Total Expenses: <span className="text-primary dark:text-primary-light">₹{totalExpenses}</span>
         </p>
 
+        {/* Filter Bar */}
         <div className="flex flex-col gap-6 mb-1">
           <FilterExpense expenses={expenses} onFilter={setFilteredExpenses} />
         </div>
 
-          <div className="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-              <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs">
-                <tr>
-                  <th className="px-4 py-3 text-left">#</th>
-                  <th className="px-4 py-3 text-left">Amount</th>
-                  <th className="px-4 py-3 text-left">Category</th>
-                  <th className="px-4 py-3 text-left">Title</th>
-                  <th className="px-4 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {filteredExpenses.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-6 text-gray-400 dark:text-gray-500">
-                      No expenses found.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedExpenses.map((exp, idx) => (
-                    <tr key={exp.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                      <td className="px-4 py-3">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
-                      <td className="px-4 py-3 font-semibold text-primary dark:text-primary-light">₹{exp.amount}</td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-1 rounded ${getCategoryColor(exp.category || "Other")}`}>
-                          {exp.category || "Other"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{exp.title}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{new Date(exp.date).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 flex justify-center gap-2">
+        {/* Table */}
+        <div className="max-w-3xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-x-auto">
+          <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-2 py-1 text-left">#</TableHead>
+                <TableHead className="px-2 py-1 text-left">Amount</TableHead>
+                <TableHead className="px-2 py-1 text-left">Category</TableHead>
+                <TableHead className="px-2 py-1 text-left">Title</TableHead>
+                <TableHead className="px-2 py-1 text-left">Date</TableHead>
+                <TableHead className="px-2 py-1 text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
+            {loading ? (
+              Array.from({ length: itemsPerPage }).map((_, idx) => (
+                <TableRow key={idx}>
+                  {Array.from({ length: 6 }).map((_, col) => (
+                    <TableCell key={col} className="px-2 py-1">
+                      <Skeleton className="h-4 w-full rounded" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : filteredExpenses.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6 text-gray-400 dark:text-gray-500">
+                  No expenses found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedExpenses.map((exp, idx) => (
+                <TableRow
+                  key={exp.id}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition ${idx % 2 === 1 ? "bg-gray-50 dark:bg-gray-900/40" : ""}`}
+                >
+                  <TableCell className="px-2 py-1">{(currentPage - 1) * itemsPerPage + idx + 1}</TableCell>
+                  <TableCell className="px-2 py-1 font-semibold text-primary dark:text-primary-light">₹{exp.amount}</TableCell>
+                  <TableCell className="px-2 py-1">
+                    <span className={`text-xs px-2 py-1 rounded ${getCategoryColor(exp.category || "Other")}`}>
+                      {exp.category || "Other"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-2 py-1 text-gray-700 dark:text-gray-300">{exp.title}</TableCell>
+                  <TableCell className="px-2 py-1 text-gray-600 dark:text-gray-400">{new Date(exp.date).toLocaleDateString()}</TableCell>
+                  <TableCell className="px-2 py-1 flex justify-center gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" title="More Actions">
+                          <MoreVertical />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="p-2 w-auto flex flex-row gap-2 bg-transparent border-none shadow-none"
+                        side="right"
+                      >
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button 
-                            variant="outline" 
-                            size="icon"
-                            title="View"
-                            onClick={() => setSelectedExpense(exp)}
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              title="View Details"
+                              onClick={() => setSelectedExpense(exp)}
                             >
                               <FcViewDetails />
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="p-0 border-none bg-transparent shadow-none w-auto">
-                            {selectedExpense?.id === exp.id && (
-                              <ViewExpense expense={selectedExpense} />
-                            )}
+                            {selectedExpense?.id === exp.id && <ViewExpense expense={selectedExpense} />}
                           </PopoverContent>
                         </Popover>
-                        <Button variant="outline" size="icon" onClick={() => handleEditExpense(exp)} title="Edit">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEditExpense(exp)}
+                          title="Edit Expense"
+                        >
                           <FaRegEdit />
                         </Button>
-                        <Button variant="destructive" size="icon" onClick={() => handleDeleteExpense(exp)} title="Delete">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Copy Details"
+                          onClick={() => {
+                            navigator.clipboard.writeText(
+                              `You spent ₹${exp.amount} on "${exp.title}" on ${new Date(exp.date).toLocaleDateString()}.`
+                            );
+                            toast.success(
+                              <span>
+                                <span className="font-semibold text-primary dark:text-primary-light">Copied!</span>
+                                <br />
+                                <span className="text-gray-700 dark:text-gray-200">
+                                  You spent <span className="font-bold">₹{exp.amount}</span> on
+                                  <span className="italic"> {exp.title}</span> on
+                                  <span className="font-mono"> {format(new Date(exp.date), "MMMM d, yyyy")}</span>.
+                                </span>
+                              </span>
+                            );
+                          }}
+                        >
+                          <LuClipboardCopy />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleDeleteExpense(exp)}
+                          title="Delete Expense"
+                        >
                           <MdDeleteOutline />
                         </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-            {totalPages > 0 && (
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</span>
-                  <Select value={String(itemsPerPage)} onValueChange={val => setItemsPerPage(Number(val))}>
-                    <SelectTrigger className="w-20" size="sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {pageOptions.map(opt => (
-                        <SelectItem key={opt} value={String(opt)}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    title="Previous Page"
-                    variant="ghost"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  >
-                    <ChevronLeft />
-                  </Button>
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <Button
-                      title={`Page ${i + 1}`}
-                      key={i}
-                      variant={currentPage === i + 1 ? "outline" : "ghost"}
-                      size="sm"
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </Button>
-                  ))}
-                  <Button
-                    title="Next Page"
-                    variant="ghost"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  >
-                    <ChevronRight />
-                  </Button>
-                </div>
-              </div>
+                      </PopoverContent>
+                    </Popover>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
+          </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 0 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</span>
+              <Select value={String(itemsPerPage)} onValueChange={val => setItemsPerPage(Number(val))}>
+                <SelectTrigger className="w-20" size="sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {pageOptions.map(opt => (
+                    <SelectItem key={opt} value={String(opt)}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                title="Previous Page"
+                variant="ghost"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              >
+                <ChevronLeft />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <Button
+                  title={`Page ${i + 1}`}
+                  key={i}
+                  variant={currentPage === i + 1 ? "outline" : "ghost"}
+                  size="sm"
+                  onClick={() => setCurrentPage(i + 1)}
+                  className="bg-transparent"
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                title="Next Page"
+                variant="ghost"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              >
+                <ChevronRight />
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Add Form Modal */}

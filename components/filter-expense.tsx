@@ -7,12 +7,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO, isAfter, isBefore } from "date-fns";
 import { CalendarIcon, FilterIcon, TagIcon, RotateCcw } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import { DateRange } from "react-day-picker";
 
 interface FilterExpenseProps {
@@ -96,7 +96,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
         <label className="text-xs font-medium">Category</label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-44 justify-between truncate">
+            <Button variant="outline" className="w-44 justify-between truncate bg-transparent">
               <TagIcon className="mr-2 h-4 w-4" />
               {selectedCategories.length > 0
                 ? selectedCategories.join(", ")
@@ -104,17 +104,16 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-52">
-            <div className="flex flex-col gap-1 px-2 py-1">
-              {categories.map(cat => (
-                <label key={cat} className="flex items-center gap-2 text-sm cursor-pointer">
-                  <Checkbox
-                    checked={selectedCategories.includes(cat)}
-                    onCheckedChange={() => handleCategoryChange(cat)}
-                  />
-                  <span>{cat}</span>
-                </label>
-              ))}
-            </div>
+            {categories.map(cat => (
+              <DropdownMenuCheckboxItem
+                key={cat}
+                checked={selectedCategories.includes(cat)}
+                onCheckedChange={() => handleCategoryChange(cat)}
+                className="capitalize"
+              >
+                {cat}
+              </DropdownMenuCheckboxItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -124,7 +123,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
         <label className="text-xs font-medium">Price Range</label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-44 justify-between truncate">
+            <Button variant="outline" className="w-44 justify-between truncate bg-transparent">
               <FilterIcon className="mr-2 h-4 w-4" />
               {selectedRanges.length > 0
                 ? predefinedRanges
@@ -135,17 +134,15 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-52">
-            <div className="flex flex-col gap-1 px-2 py-1">
-              {predefinedRanges.map(range => (
-                <label key={range.id} className="flex items-center gap-2 text-sm cursor-pointer">
-                  <Checkbox
-                    checked={selectedRanges.includes(range.id)}
-                    onCheckedChange={() => handleCheckboxChange(range.id)}
-                  />
-                  <span>{range.label}</span>
-                </label>
-              ))}
-            </div>
+            {predefinedRanges.map(range => (
+              <DropdownMenuCheckboxItem
+                key={range.id}
+                checked={selectedRanges.includes(range.id)}
+                onCheckedChange={() => handleCheckboxChange(range.id)}
+              >
+                {range.label}
+              </DropdownMenuCheckboxItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -157,7 +154,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-56 justify-start text-left font-normal truncate"
+              className="w-56 justify-start text-left font-normal truncate  bg-transparent"
               type="button"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
