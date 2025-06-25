@@ -135,3 +135,13 @@ input[type="button"],
 [tabindex]:not([tabindex="-1"]) {
   cursor: pointer;
 }
+
+::-webkit-scrollbar {
+  visibility: hidden;
+}
+::-webkit-scrollbar-thumb {
+  visibility: hidden;
+}
+::-webkit-scrollbar-track {
+  visibility: hidden
+}

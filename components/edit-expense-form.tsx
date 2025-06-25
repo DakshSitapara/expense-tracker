@@ -70,12 +70,11 @@ export function EditExpenseForm({
 
     useEffect(() => {
         if (expenseToEdit) {
-            // Ensure category is always a valid string
             form.reset({
-                title: expenseToEdit.title,
+                title: expenseToEdit.title.trim(),
                 amount: expenseToEdit.amount.toString(),
                 date: new Date(expenseToEdit.date),
-                category: expenseToEdit.category || "Other",
+                category: expenseToEdit.category?.trim() || "Other",
             });
         }
     }, [expenseToEdit, form]);
@@ -86,7 +85,6 @@ export function EditExpenseForm({
                 ...expenseToEdit,
                 title: data.title.trim(),
                 amount: parseFloat(data.amount),
-                // Save date as local yyyy-MM-dd (no timezone bug)
                 date: format(data.date, "yyyy-MM-dd"),
                 category: data.category.trim(),
             });
@@ -191,7 +189,11 @@ export function EditExpenseForm({
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Category</FormLabel>
-                                            <Select value={field.value} onValueChange={field.onChange}>
+                                            <Select 
+                                                value={field.value} 
+                                                onValueChange={field.onChange}
+                                                key={field.value}
+                                            >
                                                 <FormControl className="w-full">
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Select a Category" />

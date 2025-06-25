@@ -88,7 +88,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
 
   return (
     <form
-      className="flex flex-wrap items-end justify-center gap-4 px-4 py-4"
+      className="flex flex-wrap items-end justify-center gap-4 px-4 py-2"
       onSubmit={e => e.preventDefault()}
     >
       {/* Category Filter */}
@@ -169,6 +169,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
               selected={dateRange as DateRange}
               onSelect={(range) => setDateRange(range ?? { from: undefined, to: undefined })}
               numberOfMonths={1}
+              disabled={(date) => date > new Date()}
             />
           </PopoverContent>
         </Popover>

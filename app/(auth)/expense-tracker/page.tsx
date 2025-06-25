@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AddExpenseForm } from "@/components/add-expense-form";
 import { EditExpenseForm } from "@/components/edit-expense-form";
 import ViewExpense from "@/components/view-expense";
+import DeleteExpenseForm from "@/components/delete-expense-form";
 import FilterExpense from "@/components/filter-expense";
 import DarkModeToggle from "@/components/dark-mode-toggle";
 import { getCategoryColor } from "@/lib/utils";
@@ -62,7 +63,13 @@ export default function ExpenseTracker() {
     () => filteredExpenses.reduce((total, exp) => total + exp.amount, 0),
     [filteredExpenses]
   );
+
+  const totalExpensesCount = useMemo(
+    () => filteredExpenses.length,
+    [filteredExpenses]
+  )
   const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+
   const paginatedExpenses = filteredExpenses.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -104,6 +111,7 @@ export default function ExpenseTracker() {
   };
 
   const handleExpenseDelete = () => {
+    closeAllModals();
     if (deleteExpense) {
       const updated = expenses.filter(exp => exp.id !== deleteExpense.id);
       setExpenses(updated);
@@ -137,7 +145,7 @@ export default function ExpenseTracker() {
       setExpenses(parsed);
       setFilteredExpenses(parsed);
     }
-    setTimeout(() => setLoading(false), 600);
+    setTimeout(() => setLoading(false), 300);
   }, [username]);
 
   useEffect(() => {
@@ -172,10 +180,10 @@ export default function ExpenseTracker() {
       </header>
 
       {/* Main */}
-      <main className="max-w-7xl mx-auto px-4 py-10 items-center">
-        <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">Expense Dashboard</h2>
-        <p className="text-center text-lg font-medium text-gray-600 dark:text-gray-300 mb-8">
-          Total Expenses: <span className="text-primary dark:text-primary-light">₹{totalExpenses}</span>
+      <main className="max-w-7xl mx-auto px-4 py-2 items-center">
+        <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">Expense Dashboard</h2>
+        <p className="text-center text-lg font-medium text-gray-600 dark:text-gray-300">
+          Total Expenses Amount: <span className="text-primary dark:text-primary-light">₹{totalExpenses}</span> | Total Expenses: <span className="text-primary dark:text-primary-light">{totalExpensesCount}</span>
         </p>
 
         {/* Filter Bar */}
@@ -184,7 +192,7 @@ export default function ExpenseTracker() {
         </div>
 
         {/* Table */}
-        <div className="max-w-3xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-x-auto">
+        <div className="max-w-3xl mx-auto bg-transparent dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-x-auto">
           <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
             <TableHeader>
               <TableRow>
@@ -193,7 +201,7 @@ export default function ExpenseTracker() {
                 <TableHead className="px-2 py-1 text-left">Category</TableHead>
                 <TableHead className="px-2 py-1 text-left">Title</TableHead>
                 <TableHead className="px-2 py-1 text-left">Date</TableHead>
-                <TableHead className="px-2 py-1 text-center">Actions</TableHead>
+                <TableHead className="px-2 py-1 text-left">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -202,7 +210,7 @@ export default function ExpenseTracker() {
                 <TableRow key={idx}>
                   {Array.from({ length: 6 }).map((_, col) => (
                     <TableCell key={col} className="px-2 py-1">
-                      <Skeleton className="h-4 w-full rounded" />
+                      <Skeleton className="h-9 w-full rounded" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -217,7 +225,7 @@ export default function ExpenseTracker() {
               paginatedExpenses.map((exp, idx) => (
                 <TableRow
                   key={exp.id}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition ${idx % 2 === 1 ? "bg-gray-50 dark:bg-gray-900/40" : ""}`}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer`}
                 >
                   <TableCell className="px-2 py-1">{(currentPage - 1) * itemsPerPage + idx + 1}</TableCell>
                   <TableCell className="px-2 py-1 font-semibold text-primary dark:text-primary-light">₹{exp.amount}</TableCell>
@@ -228,7 +236,7 @@ export default function ExpenseTracker() {
                   </TableCell>
                   <TableCell className="px-2 py-1 text-gray-700 dark:text-gray-300">{exp.title}</TableCell>
                   <TableCell className="px-2 py-1 text-gray-600 dark:text-gray-400">{new Date(exp.date).toLocaleDateString()}</TableCell>
-                  <TableCell className="px-2 py-1 flex justify-center gap-2">
+                  <TableCell className="px-2 py-1">
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="ghost" size="icon" title="More Actions">
@@ -305,53 +313,55 @@ export default function ExpenseTracker() {
 
         {/* Pagination */}
         {totalPages > 0 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</span>
-              <Select value={String(itemsPerPage)} onValueChange={val => setItemsPerPage(Number(val))}>
-                <SelectTrigger className="w-20" size="sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {pageOptions.map(opt => (
-                    <SelectItem key={opt} value={String(opt)}>
-                      {opt}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                title="Previous Page"
-                variant="ghost"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              >
-                <ChevronLeft />
-              </Button>
-              {Array.from({ length: totalPages }, (_, i) => (
+          <div className="max-w-3xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-2 py-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</span>
+                <Select value={String(itemsPerPage)} onValueChange={val => setItemsPerPage(Number(val))}>
+                  <SelectTrigger className="w-20" size="sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pageOptions.map(opt => (
+                      <SelectItem key={opt} value={String(opt)}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
                 <Button
-                  title={`Page ${i + 1}`}
-                  key={i}
-                  variant={currentPage === i + 1 ? "outline" : "ghost"}
+                  title="Previous Page"
+                  variant="ghost"
                   size="sm"
-                  onClick={() => setCurrentPage(i + 1)}
-                  className="bg-transparent"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 >
-                  {i + 1}
+                  <ChevronLeft />
                 </Button>
-              ))}
-              <Button
-                title="Next Page"
-                variant="ghost"
-                size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              >
-                <ChevronRight />
-              </Button>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <Button
+                    title={`Page ${i + 1}`}
+                    key={i}
+                    variant={currentPage === i + 1 ? "outline" : "ghost"}
+                    size="sm"
+                    onClick={() => setCurrentPage(i + 1)}
+                    className="bg-transparent"
+                  >
+                    {i + 1}
+                  </Button>
+                ))}
+                <Button
+                  title="Next Page"
+                  variant="ghost"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -387,15 +397,13 @@ export default function ExpenseTracker() {
       {/* Delete Modal */}
       {deleteExpense && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setDeleteExpense(null)}>
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg max-w-sm w-full" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-center text-red-600 dark:text-red-400 mb-3">Delete Expense</h3>
-            <p className="text-center text-gray-700 dark:text-gray-300 mb-6">
-              Are you sure you want to delete <strong>{deleteExpense.title}</strong>?
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button variant="outline" onClick={() => setDeleteExpense(null)}>Cancel</Button>
-              <Button variant="destructive" onClick={handleExpenseDelete}>Delete</Button>
-            </div>
+          <div onClick={e => e.stopPropagation()}>
+            <DeleteExpenseForm
+              expense={deleteExpense}
+              open={!!deleteExpense}
+              onCancel={() => setDeleteExpense(null)}
+              onDelete={handleExpenseDelete}
+            />
           </div>
         </div>
       )}

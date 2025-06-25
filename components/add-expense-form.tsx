@@ -38,8 +38,8 @@ const FormSchema = z.object({
   amount: z
     .string()
     .min(1, "Amount is required")
-    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, {
-      message: "Amount must be a valid number greater than or equal to 0",
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 1, {
+      message: "Amount must be a valid number and greater than 0",
     }),
   date: z.date({ required_error: "Date is required" }),
   category: z.string().min(1, "Category is required"),
