@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from "react";
@@ -47,7 +48,6 @@ import { IoIosLogOut } from "react-icons/io";
 import { FcAddDatabase } from "react-icons/fc";
 
 export default function ExpenseTracker() {
-
   const router = useRouter();
   const [showAddForm, setShowAddForm] = useState(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -71,7 +71,7 @@ export default function ExpenseTracker() {
   const totalExpensesCount = useMemo(
     () => filteredExpenses.length,
     [filteredExpenses]
-  )
+  );
   const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
 
   const paginatedExpenses = filteredExpenses.slice(
@@ -193,14 +193,14 @@ export default function ExpenseTracker() {
         <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">Expense Dashboard</h2>
         <p className="text-center text-lg font-medium text-gray-600 dark:text-gray-300">
           Total Amount: <span className="text-primary dark:text-primary-light">₹{totalExpenses}</span> 
-          &nbsp;| Total Expenses: <span className="text-primary dark:text-primary-light">{totalExpensesCount}</span>
+           | Total Expenses: <span className="text-primary dark:text-primary-light">{totalExpensesCount}</span>
         </p>
 
         <div className="flex flex-col gap-6 mb-1">
           <FilterExpense expenses={expenses} onFilter={setFilteredExpenses} />
         </div>
 
-        <div className="max-w-2xl mx-auto bg-transparent dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-x-auto">
+        <div id="expense-table" className="max-w-2xl mx-auto bg-transparent dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-x-auto">
           <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
             <TableHeader>
               <TableRow>
@@ -257,7 +257,6 @@ export default function ExpenseTracker() {
                             side="right"
                             className="p-0 items-center bg-transparent shadow-none border-none flex flex-row gap-2"
                           >
-
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button
@@ -326,69 +325,106 @@ export default function ExpenseTracker() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-6 max-w-4xl mx-auto px-4">
+          <div className="w-full flex flex-col items-center gap-2 py-6 mt-4 max-w-2xl mx-auto">
+            {/* Rows per page selector */}
+            <div className="flex justify-center">
+              <div className="flex items-center">
+                <span className="text-sm text-muted-foreground">Rows per page:</span>
+                <Select value={String(itemsPerPage)} onValueChange={(val) => {
+                  setItemsPerPage(Number(val));
+                  setCurrentPage(1);
+                  document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
+                }}>
+                  <SelectTrigger className="w-20" size="sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pageOptions.map(opt => (
+                      <SelectItem key={opt} value={String(opt)}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-            {/* Rows Per Page Selector */}
-            {/* <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Rows per page:</span>
-              <Select value={String(itemsPerPage)} onValueChange={val => setItemsPerPage(Number(val))}>
-                <SelectTrigger className="w-20" size="sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {pageOptions.map(opt => (
-                    <SelectItem key={opt} value={String(opt)}>
-                      {opt}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div> */}
-
-            {/* Page Info */}
-            {/* <div className="text-sm text-muted-foreground">
-              Page <span className="font-medium text-primary dark:text-primary-light">{currentPage}</span> of{" "}
-              <span className="font-medium text-primary dark:text-primary-light">{totalPages}</span>
-            </div> */}
-
-            {/* Pagination Controls */}
-            <Pagination>
-              <PaginationContent>
-
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <PaginationItem key={i}>
-                    <Button
-                      size="sm"
-                      variant={currentPage === i + 1 ? "default" : "outline"}
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </Button>
+            {/* Page number buttons */}
+            <div className="flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  {/* Previous */}
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => {
+                        setCurrentPage(p => Math.max(1, p - 1));
+                        document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
                   </PaginationItem>
-                ))}
 
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
+                  {/* Dynamic page buttons with ellipsis */}
+                  {(() => {
+                    const pages: (number | string)[] = [];
+                    const maxVisible = 3;
 
-              </PaginationContent>
-            </Pagination>
+                    if (totalPages <= maxVisible) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                      pages.push(1);
+
+                      const middleStart = Math.max(2, currentPage - 1);
+                      const middleEnd = Math.min(totalPages - 1, currentPage + 1);
+
+                      if (middleStart > 2) pages.push("...");
+
+                      for (let i = middleStart; i <= middleEnd; i++) {
+                        pages.push(i);
+                      }
+
+                      if (middleEnd < totalPages - 1) pages.push("...");
+
+                      pages.push(totalPages);
+                    }
+
+                    return pages.map((page, idx) => (
+                      <PaginationItem key={`${page}-${idx}`}>
+                        {page === "..." ? (
+                          <span className="px-2 text-muted-foreground">...</span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant={currentPage === page ? "outline" : "ghost"}
+                            onClick={() => {
+                              setCurrentPage(Number(page));
+                              document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
+                            }}
+                            className={currentPage === page ? "pointer-events-none opacity-50" : ""}
+                          >
+                            {page}
+                          </Button>
+                        )}
+                      </PaginationItem>
+                    ));
+                  })()}
+
+                  {/* Next */}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => {
+                        setCurrentPage(p => Math.min(totalPages, p + 1));
+                        document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </div>
         )}
 
       </main>
 
-      {/* Add Form Modal */}
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={handleFormClose}>
           <div onClick={e => e.stopPropagation()}>
@@ -397,7 +433,6 @@ export default function ExpenseTracker() {
         </div>
       )}
 
-      {/* Edit Form Modal */}
       {editExpense && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={handleEditFormClose}>
           <div onClick={e => e.stopPropagation()}>
@@ -415,7 +450,6 @@ export default function ExpenseTracker() {
         </div>
       )}
 
-      {/* Delete Modal */}
       {deleteExpense && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={handleDeleteExpenseClose}>
           <div onClick={e => e.stopPropagation()}>
