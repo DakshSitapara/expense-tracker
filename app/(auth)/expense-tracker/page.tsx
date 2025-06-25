@@ -55,9 +55,7 @@ export default function ExpenseTracker() {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
 
-  const maxRows = expenses.length;
-  const pageOptions = [5, 10, 20, 50].filter(opt => opt < maxRows);
-  if (!pageOptions.includes(maxRows) && maxRows > 0) pageOptions.push(maxRows);
+  const pageOptions = [5, 10];
 
   const totalExpenses = useMemo(
     () => filteredExpenses.reduce((total, exp) => total + exp.amount, 0),
@@ -102,7 +100,7 @@ export default function ExpenseTracker() {
     setExpenses(updated);
     setFilteredExpenses(updated);
     setShowAddForm(false);
-    setTimeout(() => setLoading(false), 600);
+    setTimeout(() => setLoading(false), 300);
   };
 
   const handleDeleteExpense = (expense: Expense) => {
@@ -111,7 +109,6 @@ export default function ExpenseTracker() {
   };
 
   const handleExpenseDelete = () => {
-    closeAllModals();
     if (deleteExpense) {
       const updated = expenses.filter(exp => exp.id !== deleteExpense.id);
       setExpenses(updated);
