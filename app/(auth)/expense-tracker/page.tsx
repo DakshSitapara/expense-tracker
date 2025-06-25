@@ -30,6 +30,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext
+} from "@/components/ui/pagination";
+import {
   Table,
   TableBody,
   TableCell,
@@ -322,59 +325,67 @@ export default function ExpenseTracker() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 0 && (
-          <div className="max-w-2xl mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-2 py-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</span>
-                <Select value={String(itemsPerPage)} onValueChange={val => setItemsPerPage(Number(val))}>
-                  <SelectTrigger className="w-20" size="sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {pageOptions.map(opt => (
-                      <SelectItem key={opt} value={String(opt)}>
-                        {opt}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  title="Previous Page"
-                  variant="ghost"
-                  size="sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                >
-                  <ChevronLeft />
-                </Button>
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-6 max-w-4xl mx-auto px-4">
+
+            {/* Rows Per Page Selector */}
+            {/* <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Rows per page:</span>
+              <Select value={String(itemsPerPage)} onValueChange={val => setItemsPerPage(Number(val))}>
+                <SelectTrigger className="w-20" size="sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {pageOptions.map(opt => (
+                    <SelectItem key={opt} value={String(opt)}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div> */}
+
+            {/* Page Info */}
+            {/* <div className="text-sm text-muted-foreground">
+              Page <span className="font-medium text-primary dark:text-primary-light">{currentPage}</span> of{" "}
+              <span className="font-medium text-primary dark:text-primary-light">{totalPages}</span>
+            </div> */}
+
+            {/* Pagination Controls */}
+            <Pagination>
+              <PaginationContent>
+
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+
                 {Array.from({ length: totalPages }, (_, i) => (
-                  <Button
-                    title={`Page ${i + 1}`}
-                    key={i}
-                    variant={currentPage === i + 1 ? "outline" : "ghost"}
-                    size="sm"
-                    onClick={() => setCurrentPage(i + 1)}
-                    className="bg-transparent"
-                  >
-                    {i + 1}
-                  </Button>
+                  <PaginationItem key={i}>
+                    <Button
+                      size="sm"
+                      variant={currentPage === i + 1 ? "default" : "outline"}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Button>
+                  </PaginationItem>
                 ))}
-                <Button
-                  title="Next Page"
-                  variant="ghost"
-                  size="sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                >
-                  <ChevronRight />
-                </Button>
-              </div>
-            </div>
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
+
       </main>
 
       {/* Add Form Modal */}

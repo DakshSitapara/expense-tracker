@@ -34,9 +34,9 @@ export default function DeleteExpenseForm({
           </CardHeader>
           <CardContent>
             <div className="mb-6 text-center text-gray-700 dark:text-gray-300">
-              Are you sure you want to delete <strong>{expense.title}</strong>?
+              Are you sure you want to delete <strong>{expense.title}</strong> ?
             </div>
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-end gap-4">
               <Button variant="outline" onClick={onCancel}>Cancel</Button>
               <Button variant="destructive" onClick={onDelete}>Delete</Button>
             </div>

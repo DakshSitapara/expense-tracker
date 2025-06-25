@@ -38,28 +38,28 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
     let filtered = [...expenses];
 
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(exp => selectedCategories.includes(exp.category));
+      filtered = filtered.filter(expenses => selectedCategories.includes(expenses.category));
     }
 
     if (dateRange.from) {
-      filtered = filtered.filter(exp =>
-        isAfter(parseISO(exp.date), dateRange.from!) ||
-        format(parseISO(exp.date), "yyyy-MM-dd") === format(dateRange.from!, "yyyy-MM-dd")
+      filtered = filtered.filter(expenses =>
+        isAfter(parseISO(expenses.date), dateRange.from!) ||
+        format(parseISO(expenses.date), "yyyy-MM-dd") === format(dateRange.from!, "yyyy-MM-dd")
       );
     }
 
     if (dateRange.to) {
-      filtered = filtered.filter(exp =>
-        isBefore(parseISO(exp.date), dateRange.to!) ||
-        format(parseISO(exp.date), "yyyy-MM-dd") === format(dateRange.to!, "yyyy-MM-dd")
+      filtered = filtered.filter(expenses =>
+        isBefore(parseISO(expenses.date), dateRange.to!) ||
+        format(parseISO(expenses.date), "yyyy-MM-dd") === format(dateRange.to!, "yyyy-MM-dd")
       );
     }
 
     if (selectedRanges.length > 0) {
-      filtered = filtered.filter(exp =>
+      filtered = filtered.filter(expenses =>
         selectedRanges.some(rangeId => {
           const range = predefinedRanges.find(r => r.id === rangeId);
-          return range && exp.amount >= range.from && exp.amount <= range.to;
+          return range && expenses.amount >= range.from && expenses.amount <= range.to;
         })
       );
     }
@@ -67,9 +67,9 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
     onFilter(filtered);
   }, [selectedCategories, dateRange, selectedRanges, expenses, onFilter]);
 
-  const handleCategoryChange = (cat: string) => {
+  const handleCategoryChange = (category: string) => {
     setSelectedCategories(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
     );
   };
 
