@@ -88,7 +88,33 @@ export function EditExpenseForm({
                 date: format(data.date, "yyyy-MM-dd"),
                 category: data.category.trim(),
             });
-            toast.success(`${data.title} updated`);
+
+                const changes: string[] = [];
+
+                if (expenseToEdit.title.trim() !== data.title.trim()) {
+                changes.push(`title: "${expenseToEdit.title}" → "${data.title}"`);
+                }
+
+                if (expenseToEdit.amount !== parseFloat(data.amount)) {
+                changes.push(`amount: ${expenseToEdit.amount} → ${data.amount}`);
+                }
+
+                const formattedDate = format(data.date, "yyyy-MM-dd");
+                if (expenseToEdit.date !== formattedDate) {
+                changes.push(`date: ${expenseToEdit.date} → ${formattedDate}`);
+                }
+
+                const oldCategory = expenseToEdit.category?.trim() || "Other";
+                if (oldCategory !== data.category.trim()) {
+                changes.push(`category: ${oldCategory} → ${data.category}`);
+                }
+
+                if (changes.length > 0) {
+                toast.success(`"${data.title}" updated: ${changes.join(", ")}`);
+                } else {
+                toast.success("No changes made.");
+                }
+
         }
         form.reset();
         if (onClose) onClose();

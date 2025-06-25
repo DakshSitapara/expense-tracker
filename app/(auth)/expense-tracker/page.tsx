@@ -56,6 +56,7 @@ export default function ExpenseTracker() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
+  const [popoverOpen, setPopoverOpen] = useState<{ [key: string]: boolean }>({});
 
   const pageOptions = [5, 10];
 
@@ -105,7 +106,10 @@ export default function ExpenseTracker() {
     setTimeout(() => setLoading(false), 300);
   };
 
+  const handleDeleteExpenseClose = () => setDeleteExpense(null);
+
   const handleDeleteExpense = (expense: Expense) => {
+    setPopoverOpen({ ...popoverOpen, [expense.id]: false });
     closeAllModals();
     setDeleteExpense(expense);
   };
@@ -185,7 +189,8 @@ export default function ExpenseTracker() {
       <main className="max-w-7xl mx-auto px-4 py-2 items-center">
         <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">Expense Dashboard</h2>
         <p className="text-center text-lg font-medium text-gray-600 dark:text-gray-300">
-          Total Expenses Amount: <span className="text-primary dark:text-primary-light">₹{totalExpenses}</span> | Total Expenses: <span className="text-primary dark:text-primary-light">{totalExpensesCount}</span>
+          Total Amount: <span className="text-primary dark:text-primary-light">₹{totalExpenses}</span> 
+          &nbsp;| Total Expenses: <span className="text-primary dark:text-primary-light">{totalExpensesCount}</span>
         </p>
 
         <div className="flex flex-col gap-6 mb-1">
@@ -223,10 +228,7 @@ export default function ExpenseTracker() {
               </TableRow>
             ) : (
               paginatedExpenses.map((exp, idx) => (
-                <TableRow
-                  key={exp.id}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer`}
-                >
+                <TableRow key={exp.id}>
                   <TableCell className="px-2 py-1">{(currentPage - 1) * itemsPerPage + idx + 1}</TableCell>
                   <TableCell className="px-2 py-1 font-semibold text-primary dark:text-primary-light">₹{exp.amount}</TableCell>
                   <TableCell className="px-2 py-1">
@@ -238,8 +240,11 @@ export default function ExpenseTracker() {
                   <TableCell className="px-2 py-1 text-gray-600 dark:text-gray-400">{new Date(exp.date).toLocaleDateString()}</TableCell>
                   <TableCell className="px-2 py-1">
                       <div className="flex items-center gap-2">
-                        <Popover>
-                          <PopoverTrigger asChild>
+                        <Popover
+                          open={popoverOpen[exp.id]}
+                          onOpenChange={(open) => setPopoverOpen({ ...popoverOpen, [exp.id]: open })}
+                        >                          
+                        <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon" title="Actions">
                               <MoreVertical />
                             </Button>
@@ -249,7 +254,7 @@ export default function ExpenseTracker() {
                             side="right"
                             className="p-0 items-center bg-transparent shadow-none border-none flex flex-row gap-2"
                           >
-                            
+
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button
@@ -401,7 +406,7 @@ export default function ExpenseTracker() {
 
       {/* Delete Modal */}
       {deleteExpense && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setDeleteExpense(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={handleDeleteExpenseClose}>
           <div onClick={e => e.stopPropagation()}>
             <DeleteExpenseForm
               expense={deleteExpense}
