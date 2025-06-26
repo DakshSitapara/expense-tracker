@@ -61,10 +61,17 @@ export default function ExpenseTracker() {
   const [loading, setLoading] = useState(true);
   const [popoverOpen, setPopoverOpen] = useState<{ [key: string]: boolean }>({});
 
-  const pageOptions = [5, 10];
+  const pageOptions = useMemo(() => {
+    const len = filteredExpenses.length;
+    if (len <= 5) return [5];
+    if (len <= 10) return [5, 10];
+    if (len <= 20) return [5, 10, 20];
+    if (len <= 50) return [5, 10, 20, 50];
+    return [5, 10, 20, 50, 100];
+  }, [filteredExpenses.length]);
 
   const totalExpenses = useMemo(
-    () => filteredExpenses.reduce((total, exp) => total + exp.amount, 0),
+    () => filteredExpenses.reduce((total, expense) => total + expense.amount, 0),
     [filteredExpenses]
   );
 
@@ -119,7 +126,7 @@ export default function ExpenseTracker() {
 
   const handleExpenseDelete = () => {
     if (deleteExpense) {
-      const updated = expenses.filter(exp => exp.id !== deleteExpense.id);
+      const updated = expenses.filter(expense => expense.id !== deleteExpense.id);
       setExpenses(updated);
       setFilteredExpenses(updated);
       toast.success(`${deleteExpense.title} deleted`);
@@ -230,22 +237,22 @@ export default function ExpenseTracker() {
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedExpenses.map((exp, idx) => (
-                <TableRow key={exp.id}>
+              paginatedExpenses.map((expense, idx) => (
+                <TableRow key={expense.id}>
                   <TableCell className="px-2 py-1">{(currentPage - 1) * itemsPerPage + idx + 1}</TableCell>
-                  <TableCell className="px-2 py-1 font-semibold text-primary dark:text-primary-light">₹{exp.amount}</TableCell>
+                  <TableCell className="px-2 py-1 font-semibold text-primary dark:text-primary-light">₹{expense.amount}</TableCell>
                   <TableCell className="px-2 py-1">
-                    <span className={`text-xs px-2 py-1 rounded ${getCategoryColor(exp.category || "Other")}`}>
-                      {exp.category || "Other"}
+                    <span className={`text-xs px-2 py-1 rounded ${getCategoryColor(expense.category || "Other")}`}>
+                      {expense.category || "Other"}
                     </span>
                   </TableCell>
-                  <TableCell className="px-2 py-1 text-gray-700 dark:text-gray-300">{exp.title}</TableCell>
-                  <TableCell className="px-2 py-1 text-gray-600 dark:text-gray-400">{new Date(exp.date).toLocaleDateString()}</TableCell>
+                  <TableCell className="px-2 py-1 text-gray-700 dark:text-gray-300">{expense.title}</TableCell>
+                  <TableCell className="px-2 py-1 text-gray-600 dark:text-gray-400">{new Date(expense.date).toLocaleDateString()}</TableCell>
                   <TableCell className="px-2 py-1">
                       <div className="flex items-center gap-2">
                         <Popover
-                          open={popoverOpen[exp.id]}
-                          onOpenChange={(open) => setPopoverOpen({ ...popoverOpen, [exp.id]: open })}
+                          open={popoverOpen[expense.id]}
+                          onOpenChange={(open) => setPopoverOpen({ ...popoverOpen, [expense.id]: open })}
                         >                          
                         <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon" title="Actions">
@@ -263,13 +270,13 @@ export default function ExpenseTracker() {
                                   variant="outline"
                                   size="icon"
                                   title="View Details"
-                                  onClick={() => setSelectedExpense(exp)}
+                                  onClick={() => setSelectedExpense(expense)}
                                 >
                                   <FcViewDetails />
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="p-0 border-none bg-transparent shadow-none w-auto">
-                                {selectedExpense?.id === exp.id && <ViewExpense expense={selectedExpense} />}
+                                {selectedExpense?.id === expense.id && <ViewExpense expense={selectedExpense} />}
                               </PopoverContent>
                             </Popover>
 
@@ -277,7 +284,7 @@ export default function ExpenseTracker() {
                               variant="outline"
                               size="icon"
                               title="Edit Expense"
-                              onClick={() => handleEditExpense(exp)}
+                              onClick={() => handleEditExpense(expense)}
                             >
                               <FaRegEdit />
                             </Button>
@@ -287,16 +294,16 @@ export default function ExpenseTracker() {
                               title="Copy Details"
                               onClick={() => {
                                 navigator.clipboard.writeText(
-                                  `You spent ₹${exp.amount} on "${exp.title}" on ${new Date(exp.date).toLocaleDateString()}.`
+                                  `You spent ₹${expense.amount} on "${expense.title}" on ${new Date(expense.date).toLocaleDateString()}.`
                                 );
                                 toast.success(
                                   <span>
                                     <span className="font-semibold text-primary dark:text-primary-light">Copied!</span>
                                     <br />
                                     <span className="text-gray-700 dark:text-gray-200">
-                                      You spent <span className="font-bold">₹{exp.amount}</span> on
-                                      <span className="italic"> {exp.title}</span> on
-                                      <span className="font-mono"> {format(new Date(exp.date), "MMMM d, yyyy")}</span>.
+                                      You spent <span className="font-bold">₹{expense.amount}</span> on
+                                      <span className="italic"> {expense.title}</span> on
+                                      <span className="font-mono"> {format(new Date(expense.date), "MMMM d, yyyy")}</span>.
                                     </span>
                                   </span>
                                 );
@@ -308,7 +315,7 @@ export default function ExpenseTracker() {
                               variant="destructive"
                               size="icon"
                               title="Delete Expense"
-                              onClick={() => handleDeleteExpense(exp)}
+                              onClick={() => handleDeleteExpense(expense)}
                             >
                               <MdDeleteOutline />
                             </Button>
@@ -324,11 +331,10 @@ export default function ExpenseTracker() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {totalPages > 0 && (
           <div className="w-full flex flex-col items-center gap-2 py-6 mt-4 max-w-2xl mx-auto">
-            {/* Rows per page selector */}
             <div className="flex justify-center">
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Rows per page:</span>
                 <Select value={String(itemsPerPage)} onValueChange={(val) => {
                   setItemsPerPage(Number(val));
@@ -347,13 +353,13 @@ export default function ExpenseTracker() {
               </div>
             </div>
 
-            {/* Page number buttons */}
             <div className="flex justify-center">
               <Pagination>
                 <PaginationContent>
-                  {/* Previous */}
                   <PaginationItem>
                     <PaginationPrevious
+                      title="Go to previous page"
+                      aria-label="Go to previous page"
                       onClick={() => {
                         setCurrentPage(p => Math.max(1, p - 1));
                         document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
@@ -365,7 +371,7 @@ export default function ExpenseTracker() {
                   {/* Dynamic page buttons with ellipsis */}
                   {(() => {
                     const pages: (number | string)[] = [];
-                    const maxVisible = 3;
+                    const maxVisible = 2;
 
                     if (totalPages <= maxVisible) {
                       for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -392,6 +398,8 @@ export default function ExpenseTracker() {
                           <span className="px-2 text-muted-foreground">...</span>
                         ) : (
                           <Button
+                            title={`Go to page ${page}`}
+                            aria-label={`Go to page ${page}`}
                             size="sm"
                             variant={currentPage === page ? "outline" : "ghost"}
                             onClick={() => {
@@ -407,9 +415,10 @@ export default function ExpenseTracker() {
                     ));
                   })()}
 
-                  {/* Next */}
                   <PaginationItem>
                     <PaginationNext
+                      title="Go to next page"
+                      aria-label="Go to next page"
                       onClick={() => {
                         setCurrentPage(p => Math.min(totalPages, p + 1));
                         document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
@@ -439,7 +448,7 @@ export default function ExpenseTracker() {
             <EditExpenseForm
               onClose={handleEditFormClose}
               onEditExpense={(updated) => {
-                const updatedList = expenses.map(exp => exp.id === updated.id ? updated : exp);
+                const updatedList = expenses.map(expense => expense.id === updated.id ? updated : expense);
                 setExpenses(updatedList);
                 setFilteredExpenses(updatedList);
                 setEditExpense(null);
