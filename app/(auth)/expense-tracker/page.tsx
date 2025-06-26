@@ -15,7 +15,6 @@ import { MdDeleteOutline } from "react-icons/md";
 import { FcViewDetails } from "react-icons/fc";
 import { FaRegEdit } from "react-icons/fa";
 import { LuClipboardCopy } from "react-icons/lu";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 import {
