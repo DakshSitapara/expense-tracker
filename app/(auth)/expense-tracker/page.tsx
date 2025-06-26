@@ -200,13 +200,12 @@ export default function ExpenseTracker() {
         <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">
           Expense Dashboard
         </h2>
+        {loading || expenses.length > 0 ? (
+          <>
         <p className="text-center text-lg font-medium text-gray-600 dark:text-gray-300">
           Total Amount: <span className="text-primary dark:text-primary-light">₹{totalExpenses}</span>
            | Total Expenses: <span className="text-primary dark:text-primary-light">{totalExpensesCount}</span>
         </p>
-
-        {loading || expenses.length > 0 ? (
-          <>
             <div className="flex flex-col gap-6 mb-1">
               <FilterExpense expenses={expenses} onFilter={setFilteredExpenses} />
             </div>
