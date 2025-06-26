@@ -230,6 +230,12 @@ export default function ExpenseTracker() {
                   ))}
                 </TableRow>
               ))
+            ) : expenses.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6 text-gray-400 dark:text-gray-500">
+                  Start adding expenses by clicking the "Add Expense" button.
+                </TableCell>
+              </TableRow>
             ) : filteredExpenses.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-6 text-gray-400 dark:text-gray-500">
