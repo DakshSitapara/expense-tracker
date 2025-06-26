@@ -165,6 +165,9 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
       <Popover>
         <PopoverTrigger asChild>
         <Button
+          title={dateRange.from && dateRange.to
+            ? `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`
+            : "Pick a date range"}
           variant="outline"
           className="w-10 justify-center bg-transparent sm:w-56 sm:justify-start sm:text-left sm:font-normal sm:truncate"
           type="button"

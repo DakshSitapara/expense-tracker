@@ -254,79 +254,88 @@ export default function ExpenseTracker() {
                   <TableCell className="px-2 py-1 text-gray-700 dark:text-gray-300">{expense.title}</TableCell>
                   <TableCell className="px-2 py-1 text-gray-600 dark:text-gray-400">{new Date(expense.date).toLocaleDateString()}</TableCell>
                   <TableCell className="px-2 py-1">
-                      <div className="flex items-center gap-2">
-                        <Popover
-                          open={popoverOpen[expense.id]}
-                          onOpenChange={(open) => setPopoverOpen({ ...popoverOpen, [expense.id]: open })}
-                        >                          
+                    <div className="flex items-center gap-2">
+                      <Popover
+                        open={popoverOpen[expense.id]}
+                        onOpenChange={(open) => setPopoverOpen({ ...popoverOpen, [expense.id]: open })}
+                      >
                         <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" title="Actions">
-                              <MoreVertical />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            align="end"
-                            side="right"
-                            className="p-0 items-center bg-transparent shadow-none border-none flex flex-row gap-2"
-                          >
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  title="View Details"
-                                  onClick={() => setSelectedExpense(expense)}
-                                >
-                                  <FcViewDetails />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="p-0 border-none bg-transparent shadow-none w-auto">
-                                {selectedExpense?.id === expense.id && <ViewExpense expense={selectedExpense} />}
-                              </PopoverContent>
-                            </Popover>
+                          <Button variant="ghost" size="icon" title="Actions">
+                            <MoreVertical />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="end"
+                          side={
+                            typeof window !== "undefined" && window.innerWidth < 640
+                              ? "bottom"
+                              : "right"
+                          }
+                          className= { 
+                            typeof window !== "undefined" && window.innerWidth < 640 ? 
+                              "p-0 items-center bg-transparent shadow-none border-none flex flex-col gap-2 w-auto" 
+                            : "p-0 items-center bg-transparent shadow-none border-none flex flex-row gap-2 w-auto"}
+                        >
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                title="View Details"
+                                onClick={() => setSelectedExpense(expense)}
+                              >
+                                <FcViewDetails />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                             align="center"
+                             className="p-0 border-none bg-transparent shadow-none w-auto">
+                              {selectedExpense?.id === expense.id && <ViewExpense expense={selectedExpense} />}
+                            </PopoverContent>
+                          </Popover>
 
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              title="Edit Expense"
-                              onClick={() => handleEditExpense(expense)}
-                            >
-                              <FaRegEdit />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              title="Copy Details"
-                              onClick={() => {
-                                navigator.clipboard.writeText(
-                                  `You spent ₹${expense.amount} on "${expense.title}" on ${new Date(expense.date).toLocaleDateString()}.`
-                                );
-                                toast.success(
-                                  <span>
-                                    <span className="font-semibold text-primary dark:text-primary-light">Copied!</span>
-                                    <br />
-                                    <span className="text-gray-700 dark:text-gray-200">
-                                      You spent <span className="font-bold">₹{expense.amount}</span> on
-                                      <span className="italic"> {expense.title}</span> on
-                                      <span className="font-mono"> {format(new Date(expense.date), "MMMM d, yyyy")}</span>.
-                                    </span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            title="Edit Expense"
+                            onClick={() => handleEditExpense(expense)}
+                          >
+                            <FaRegEdit />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            title="Copy Details"
+                            onClick={() => {
+                              navigator.clipboard.writeText(
+                                `You spent ₹${expense.amount} on "${expense.title}" on ${new Date(expense.date).toLocaleDateString()}.`
+                              );
+                              toast.success(
+                                <span>
+                                  <span className="font-semibold text-primary dark:text-primary-light">Copied!</span>
+                                  <br />
+                                  <span className="text-gray-700 dark:text-gray-200">
+                                    You spent <span className="font-bold">₹{expense.amount}</span> on
+                                    <span className="italic"> {expense.title}</span> on
+                                    <span className="font-mono"> {format(new Date(expense.date), "MMMM d, yyyy")}</span>.
                                   </span>
-                                );
-                              }}
-                            >
-                              <LuClipboardCopy />
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              title="Delete Expense"
-                              onClick={() => handleDeleteExpense(expense)}
-                            >
-                              <MdDeleteOutline />
-                            </Button>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
+                                </span>
+                              );
+                            }}
+                          >
+                            <LuClipboardCopy />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            title="Delete Expense"
+                            onClick={() => handleDeleteExpense(expense)}
+                          >
+                            <MdDeleteOutline />
+                          </Button>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
