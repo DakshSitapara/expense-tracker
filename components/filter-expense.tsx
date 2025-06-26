@@ -98,6 +98,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
         <Button
           variant="outline"
           className="w-10 justify-center bg-transparent sm:w-44 sm:justify-between sm:truncate"
+          title={selectedCategories.length > 0 ? selectedCategories.join(", ") : "Select category"}
         >
           <TagIcon className="h-5 w-5" />
           <span className="hidden sm:inline">
@@ -129,6 +130,10 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
         <Button
           variant="outline"
           className="w-10 justify-center bg-transparent sm:w-44 sm:justify-between sm:truncate"
+          title={selectedRanges.length > 0 ? predefinedRanges
+            .filter(r => selectedRanges.includes(r.id))
+            .map(r => r.label)
+            .join(", ") : "Select price range"}
         >
           <FilterIcon className="h-5 w-5" />
           <span className="hidden sm:inline">
