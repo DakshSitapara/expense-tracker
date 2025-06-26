@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 // import DarkModeToggle from "@/components/dark-mode-toggle";
 
 const geistSans = Geist({
@@ -30,6 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black dark:bg-[#18181b] dark:text-white`}
       >
         {children}
+        <SpeedInsights />
         {/* <DarkModeToggle /> */}
         <Toaster
           position="top-center"
