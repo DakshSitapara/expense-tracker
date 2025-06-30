@@ -62,22 +62,16 @@ export default function ExpenseTracker() {
 
 const pageOptions = useMemo(() => {
   const len = filteredExpenses.length;
-  const options = new Set<number>();
+  const options = [5];
 
-  if (len <= 5) {
-    options.add(5);
-  } else {
-    options.add(5);
-    if (len > 5) options.add(10);
-    if (len > 15) options.add(20);
-    if (len > 25) options.add(30);
-    if (len > 40) options.add(50);
-    if (len > 60) options.add(100);
-  }
+  if (len > 5) options.push(10);
+  if (len > 15) options.push(20);
+  if (len > 25) options.push(30);
+  if (len > 40) options.push(50);
+  if (len > 60) options.push(100);
 
-  return Array.from(options).sort((a, b) => a - b);
+  return options;
 }, [filteredExpenses.length]);
-
 
   const totalExpenses = useMemo(
     () => filteredExpenses.reduce((total, expense) => total + expense.amount, 0),
@@ -232,10 +226,10 @@ const pageOptions = useMemo(() => {
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
             {loading ? (
-              Array.from({ length: itemsPerPage }).map((_, idx) => (
-                <TableRow key={idx}>
-                  {Array.from({ length: 6 }).map((_, col) => (
-                    <TableCell key={col} className="px-2 py-1">
+              Array(itemsPerPage).fill(null).map((_, i) => (
+                <TableRow key={i}>
+                  {Array(6).fill(null).map((_, j) => (
+                    <TableCell key={j} className="px-2 py-1">
                       <Skeleton className="h-9 w-full rounded" />
                     </TableCell>
                   ))}
@@ -366,7 +360,6 @@ const pageOptions = useMemo(() => {
                 value={String(itemsPerPage)} onValueChange={(val) => {
                   setItemsPerPage(Number(val));
                   setCurrentPage(1);
-                  document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
                 }}>
                   <SelectTrigger title={"show " +String(itemsPerPage) + " rows per page" || ""} className="w-20" size="sm">
                     <SelectValue />
@@ -388,67 +381,30 @@ const pageOptions = useMemo(() => {
                       title="Go to previous page"
                       aria-label="Go to previous page"
                       onClick={() => {
-                        setCurrentPage(p => Math.max(1, p - 1));
-                        document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
+                        setCurrentPage(currentPage - 1);
                       }}
                       className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
 
-                  {(() => {
-                  const pages: (number | string)[] = [];
-                  const sideWidth = 1;
-                  const range = 3;
-
-                  if (totalPages <= range + 2 * sideWidth) {
-                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                  } else {
-                    pages.push(1);
-
-                    const start = Math.max(2, currentPage - Math.floor(range / 2));
-                    const end = Math.min(totalPages - 1, start + range - 1);
-
-                    if (start > 2) pages.push("...");
-
-                    for (let i = start; i <= end; i++) {
-                      pages.push(i);
-                    }
-
-                    if (end < totalPages - 1) pages.push("...");
-
-                    pages.push(totalPages);
-                  }
-
-                  return pages.map((page, idx) => (
-                    <PaginationItem key={`${page}-${idx}`}>
-                      {page === "..." ? (
-                        <span className="px-2 text-muted-foreground">...</span>
-                      ) : (
-                        <Button
-                          title={`Go to page ${page}`}
-                          aria-label={`Go to page ${page}`}
-                          size="sm"
-                          variant={currentPage === page ? "outline" : "ghost"}
-                          onClick={() => {
-                            setCurrentPage(Number(page));
-                            document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
-                          }}
-                          className={currentPage === page ? "pointer-events-none opacity-50" : ""}
-                        >
-                          {page}
-                        </Button>
-                      )}
-                    </PaginationItem>
-                  ));
-                })()}
+                   {[...Array(totalPages)].map((_, i) => (
+                    <Button
+                      key={i + 1}
+                      variant={currentPage === i + 1 ? "outline" : "ghost"}
+                      size="sm"
+                      onClick={() => setCurrentPage(i + 1)}
+                      disabled={currentPage === i + 1}
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
 
                   <PaginationItem>
                     <PaginationNext
                       title="Go to next page"
                       aria-label="Go to next page"
                       onClick={() => {
-                        setCurrentPage(p => Math.min(totalPages, p + 1));
-                        document.getElementById("expense-table")?.scrollIntoView({ behavior: "smooth" });
+                        setCurrentPage(currentPage + 1);
                       }}
                       className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
                     />
