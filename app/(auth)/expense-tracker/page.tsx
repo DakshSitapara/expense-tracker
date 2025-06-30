@@ -226,25 +226,19 @@ const pageOptions = useMemo(() => {
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
             {loading ? (
-              Array(itemsPerPage).fill(null).map((_, i) => (
+              Array(itemsPerPage).fill(0).map((_, i) => (
                 <TableRow key={i}>
-                  {Array(6).fill(null).map((_, j) => (
+                  {Array(6).fill(0).map((_, j) => (
                     <TableCell key={j} className="px-2 py-1">
                       <Skeleton className="h-9 w-full rounded" />
                     </TableCell>
                   ))}
                 </TableRow>
               ))
-            ) : expenses.length === 0 ? (
+            ) :  !filteredExpenses.length ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-6 text-gray-400 dark:text-gray-500">
-                  Start adding expenses by clicking the "Add Expense" button.
-                </TableCell>
-              </TableRow>
-            ) : filteredExpenses.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-6 text-gray-400 dark:text-gray-500">
-                  No expenses found.
+                  {expenses.length ? 'No expenses found.' : 'Start adding expenses.'}
                 </TableCell>
               </TableRow>
             ) : (
