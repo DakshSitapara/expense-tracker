@@ -1,8 +1,9 @@
-# Next.js Starter Kit
+# Expense Tracker
 
-![Next.js](https://img.shields.io/badge/Next.js-15.x-000000.svg?style=flat-square&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?style=flat-square&logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC.svg?style=flat-square&logo=tailwind-css)
+![Next.js](https://img.shields.io/badge/Next.js-15.x-000000.svg?style=flat-square&logo=next.js)  
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?style=flat-square&logo=typescript)  
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC.svg?style=flat-square&logo=tailwind-css)  
+![Shadcn UI](https://img.shields.io/badge/Shadcn_UI-2.x-000000.svg?style=flat-square&logo=shadcnui)  
 ![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)
 
 A modern, lightweight, and production-ready boilerplate for building scalable web applications with **Next.js**, **TypeScript**, and **Tailwind CSS**. This starter kit is designed to streamline your development process with pre-configured tools and best practices.
