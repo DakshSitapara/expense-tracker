@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Expense } from "@/types/expense";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, parseISO, isAfter, isBefore } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { CalendarIcon, FilterIcon, TagIcon, RotateCcw } from "lucide-react";
 import {
   DropdownMenu,
@@ -20,12 +20,12 @@ interface FilterExpenseProps {
   onFilter: (filtered: Expense[]) => void;
 }
 
-const categories = ["Food", "Travel", "Shopping", "Entertainment", "Other"];
-
 export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({ from: undefined, to: undefined });
   const [selectedRanges, setSelectedRanges] = useState<string[]>([]);
+
+  const categories = Array.from(new Set(expenses.map(expense => expense.category)));
 
   const predefinedRanges = [
     { id: "0-100", label: "₹0 - ₹100", from: 0, to: 100 },
@@ -37,31 +37,30 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
   useEffect(() => {
     let filtered = [...expenses];
 
-    if (selectedCategories.length > 0) {
+    if (selectedCategories.length) {
       filtered = filtered.filter(expenses => selectedCategories.includes(expenses.category));
     }
 
-    if (dateRange.from) {
-      filtered = filtered.filter(expenses =>
-        isAfter(parseISO(expenses.date), dateRange.from!) ||
-        format(parseISO(expenses.date), "yyyy-MM-dd") === format(dateRange.from!, "yyyy-MM-dd")
-      );
+    if (dateRange.from || dateRange.to) {
+      filtered = filtered.filter(expense => {
+        const expenseDate = parseISO(expense.date);
+        const from = dateRange.from;
+        const to = dateRange.to;
+
+        const isAfterFrom = from ? expenseDate >= from : true;
+        const isBeforeTo = to ? expenseDate <= to : true;
+
+        return isAfterFrom && isBeforeTo;
+      });
     }
 
-    if (dateRange.to) {
-      filtered = filtered.filter(expenses =>
-        isBefore(parseISO(expenses.date), dateRange.to!) ||
-        format(parseISO(expenses.date), "yyyy-MM-dd") === format(dateRange.to!, "yyyy-MM-dd")
-      );
-    }
-
-    if (selectedRanges.length > 0) {
-      filtered = filtered.filter(expenses =>
-        selectedRanges.some(rangeId => {
-          const range = predefinedRanges.find(r => r.id === rangeId);
-          return range && expenses.amount >= range.from && expenses.amount <= range.to;
-        })
-      );
+    if (selectedRanges.length) {
+      filtered = filtered.filter(expense => {
+        return selectedRanges.some(rangeId => {
+          const range = predefinedRanges.find(range => range.id === rangeId);
+          return range && expense.amount >= range.from && expense.amount <= range.to;
+        });
+      });
     }
 
     onFilter(filtered);
@@ -69,13 +68,13 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategories(prev =>
-      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+      prev.includes(category) ? prev.filter(category => category !== category) : [...prev, category]
     );
   };
 
   const handleCheckboxChange = (id: string) => {
     setSelectedRanges(prev =>
-      prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter(range => range !== id) : [...prev, id]
     );
   };
 
@@ -101,7 +100,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
           title={selectedCategories.length > 0 ? selectedCategories.join(", ") : "Select category"}
         >
           <TagIcon className="h-5 w-5" />
-          <span className="hidden sm:inline">
+          <span className="hidden sm:inline mx-auto">
           {selectedCategories.length > 0
             ? selectedCategories.join(", ")
             : "Select category"}
@@ -109,14 +108,14 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
         </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-52">
-        {categories.map(cat => (
+        {categories.map(categorie => (
           <DropdownMenuCheckboxItem
-          key={cat}
-          checked={selectedCategories.includes(cat)}
-          onCheckedChange={() => handleCategoryChange(cat)}
+          key={categorie}
+          checked={selectedCategories.includes(categorie)}
+          onCheckedChange={() => handleCategoryChange(categorie)}
           className="capitalize"
           >
-          {cat}
+          {categorie}
           </DropdownMenuCheckboxItem>
         ))}
         </DropdownMenuContent>
@@ -131,16 +130,16 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
           variant="outline"
           className="w-10 justify-center bg-transparent sm:w-44 sm:justify-between sm:truncate"
           title={selectedRanges.length > 0 ? predefinedRanges
-            .filter(r => selectedRanges.includes(r.id))
-            .map(r => r.label)
+            .filter(range => selectedRanges.includes(range.id))
+            .map(range => range.label)
             .join(", ") : "Select price range"}
         >
           <FilterIcon className="h-5 w-5" />
-          <span className="hidden sm:inline">
+          <span className="hidden sm:inline mx-auto">
           {selectedRanges.length > 0
             ? predefinedRanges
-              .filter(r => selectedRanges.includes(r.id))
-              .map(r => r.label)
+              .filter(range => selectedRanges.includes(range.id))
+              .map(range => range.label)
               .join(", ")
             : "Select price range"}
           </span>
@@ -173,7 +172,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
           type="button"
         >
           <CalendarIcon className="h-5 w-5" />
-          <span className="hidden sm:inline">
+          <span className="hidden sm:inline mx-auto">
           {dateRange.from && dateRange.to
             ? `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`
             : "Pick a date range"}

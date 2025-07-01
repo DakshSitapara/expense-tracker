@@ -209,7 +209,9 @@ const pageOptions = useMemo(() => {
         </p>
 
         <div className="flex flex-col gap-6 mb-1">
-          <FilterExpense expenses={expenses} onFilter={setFilteredExpenses} />
+          {expenses.length > 0 && (
+            <FilterExpense expenses={expenses} onFilter={setFilteredExpenses} />
+          )}
         </div>
 
         <div id="expense-table" className="max-w-2xl mx-auto rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-x-auto">
