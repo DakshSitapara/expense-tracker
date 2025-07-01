@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Expense } from "@/types/expense";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
-import { CalendarIcon, FilterIcon, TagIcon, RotateCcw } from "lucide-react";
+import { enIN } from "date-fns/locale/en-IN";
+import { CalendarIcon, FilterIcon, TagIcon, RotateCcw, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -33,6 +35,19 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
     { id: "500-1000", label: "₹500 - ₹1000", from: 500, to: 1000 },
     { id: "1000+", label: "₹1000+", from: 1000, to: Infinity },
   ];
+
+  const dateRangeLabel = useMemo(() => {
+    if (dateRange.from && dateRange.to) {
+      return `${format(dateRange.from, "d MMM yyyy", { locale: enIN })} - ${format(dateRange.to, "d MMM yyyy", { locale: enIN })}`;
+    }
+    if (dateRange.from) {
+      return `From ${format(dateRange.from, "d MMM yyyy", { locale: enIN })}`;
+    }
+    if (dateRange.to) {
+      return `To ${format(dateRange.to, "d MMM yyyy", { locale: enIN })}`;
+    }
+    return null;
+  }, [dateRange]);
 
   useEffect(() => {
     let filtered = [...expenses];
@@ -68,7 +83,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategories(prev =>
-      prev.includes(category) ? prev.filter(category => category !== category) : [...prev, category]
+      prev.includes(category) ? prev.filter(cat => cat !== category) : [...prev, category]
     );
   };
 
@@ -85,123 +100,183 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
     onFilter(expenses);
   };
 
+  const handleRemoveCategory = (category: string) => {
+    setSelectedCategories(prev => prev.filter(cat => cat !== category));
+  };
+
+  const handleRemoveRange = (id: string) => {
+    setSelectedRanges(prev => prev.filter(range => range !== id));
+  };
+
+  const handleRemoveDateRange = () => {
+    setDateRange({ from: undefined, to: undefined });
+  };
+
   return (
     <form
       className="flex flex-wrap items-end justify-center gap-4 px-4 py-2"
       onSubmit={e => e.preventDefault()}
     >
       <div className="flex flex-col space-y-1">
-      <label className="text-xs font-medium hidden sm:block">Category</label>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-10 justify-center bg-transparent sm:w-44 sm:justify-between sm:truncate"
-          title={selectedCategories.length > 0 ? selectedCategories.join(", ") : "Select category"}
-        >
-          <TagIcon className="h-5 w-5" />
-          <span className="hidden sm:inline mx-auto">
-          {selectedCategories.length > 0
-            ? selectedCategories.join(", ")
-            : "Select category"}
-          </span>
-        </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-52">
-        {categories.map(categorie => (
-          <DropdownMenuCheckboxItem
-          key={categorie}
-          checked={selectedCategories.includes(categorie)}
-          onCheckedChange={() => handleCategoryChange(categorie)}
-          className="capitalize"
-          >
-          {categorie}
-          </DropdownMenuCheckboxItem>
-        ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <label className="text-xs font-medium hidden sm:block">Category</label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-10 justify-center bg-transparent sm:w-44 sm:justify-between sm:truncate"
+              title={selectedCategories.length > 0 ? selectedCategories.join(", ") : "Select category"}
+            >
+              <TagIcon className="h-5 w-5" />
+              <span className="hidden sm:inline mx-auto">
+                {selectedCategories.length > 0
+                  ? selectedCategories.join(", ")
+                  : "Select category"}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-52">
+            {categories.map(categorie => (
+              <DropdownMenuCheckboxItem
+                key={categorie}
+                checked={selectedCategories.includes(categorie)}
+                onCheckedChange={() => handleCategoryChange(categorie)}
+                className="capitalize"
+              >
+                {categorie}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="flex flex-col space-y-1">
-      <label className="text-xs font-medium hidden sm:block">Price Range</label>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-10 justify-center bg-transparent sm:w-44 sm:justify-between sm:truncate"
-          title={selectedRanges.length > 0 ? predefinedRanges
-            .filter(range => selectedRanges.includes(range.id))
-            .map(range => range.label)
-            .join(", ") : "Select price range"}
-        >
-          <FilterIcon className="h-5 w-5" />
-          <span className="hidden sm:inline mx-auto">
-          {selectedRanges.length > 0
-            ? predefinedRanges
-              .filter(range => selectedRanges.includes(range.id))
-              .map(range => range.label)
-              .join(", ")
-            : "Select price range"}
-          </span>
-        </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-52">
-        {predefinedRanges.map(range => (
-          <DropdownMenuCheckboxItem
-          key={range.id}
-          checked={selectedRanges.includes(range.id)}
-          onCheckedChange={() => handleCheckboxChange(range.id)}
-          >
-          {range.label}
-          </DropdownMenuCheckboxItem>
-        ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <label className="text-xs font-medium hidden sm:block">Price Range</label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-10 justify-center bg-transparent sm:w-44 sm:justify-between sm:truncate"
+              title={selectedRanges.length > 0 ? predefinedRanges
+                .filter(range => selectedRanges.includes(range.id))
+                .map(range => range.label)
+                .join(", ") : "Select price range"}
+            >
+              <FilterIcon className="h-5 w-5" />
+              <span className="hidden sm:inline mx-auto">
+                {selectedRanges.length > 0
+                  ? predefinedRanges
+                    .filter(range => selectedRanges.includes(range.id))
+                    .map(range => range.label)
+                    .join(", ")
+                  : "Select price range"}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-52">
+            {predefinedRanges.map(range => (
+              <DropdownMenuCheckboxItem
+                key={range.id}
+                checked={selectedRanges.includes(range.id)}
+                onCheckedChange={() => handleCheckboxChange(range.id)}
+              >
+                {range.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="flex flex-col space-y-1">
-      <label className="text-xs font-medium hidden sm:block">Date Range</label>
-      <Popover>
-        <PopoverTrigger asChild>
+        <label className="text-xs font-medium hidden sm:block">Date Range</label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              title={dateRange.from && dateRange.to
+                ? `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`
+                : "Pick a date range"}
+              variant="outline"
+              className="w-10 justify-center bg-transparent sm:w-56 sm:justify-start sm:text-left sm:font-normal sm:truncate"
+              type="button"
+            >
+              <CalendarIcon className="h-5 w-5" />
+              <span className="hidden sm:inline mx-auto">
+                {dateRange.from && dateRange.to
+                  ? `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`
+                  : "Pick a date range"}
+              </span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={dateRange as DateRange}
+              onSelect={(range) => setDateRange(range ?? { from: undefined, to: undefined })}
+              numberOfMonths={1}
+              disabled={(date) => date > new Date()}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="h-10 flex items-end gap-2 flex-wrap">
         <Button
-          title={dateRange.from && dateRange.to
-            ? `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`
-            : "Pick a date range"}
-          variant="outline"
-          className="w-10 justify-center bg-transparent sm:w-56 sm:justify-start sm:text-left sm:font-normal sm:truncate"
+          title="Reset filters"
           type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleReset}
+          className="gap-1 text-sm text-muted-foreground hover:text-foreground w-10 justify-center sm:w-auto"
         >
-          <CalendarIcon className="h-5 w-5" />
-          <span className="hidden sm:inline mx-auto">
-          {dateRange.from && dateRange.to
-            ? `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`
-            : "Pick a date range"}
-          </span>
+          <RotateCcw className="h-5 w-5" />
         </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="range"
-          selected={dateRange as DateRange}
-          onSelect={(range) => setDateRange(range ?? { from: undefined, to: undefined })}
-          numberOfMonths={1}
-          disabled={(date) => date > new Date()}
-        />
-        </PopoverContent>
-      </Popover>
       </div>
 
-      <div className="h-10 flex items-end">
-      <Button
-        title="Reset filters"
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleReset}
-        className="gap-1 text-sm text-muted-foreground hover:text-foreground w-10 justify-center sm:w-auto"
-      >
-        <RotateCcw className="h-5 w-5" />
-      </Button>
+      <div className="flex flex-wrap gap-2 w-full sm:w-1/2">
+        {selectedCategories.map(category => (
+          <Badge key={`category-${category}`} variant="secondary" className="px-2 py-1 flex items-center gap-1">
+            <span className="sr-only">Category filter: </span>
+            {category}
+            <button
+              type="button"
+              aria-label={`Remove ${category} filter`}
+              className="ml-1 hover:text-red-500"
+              onClick={() => handleRemoveCategory(category)}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </Badge>
+        ))}
+        {selectedRanges.map(rangeId => {
+          const range = predefinedRanges.find(r => r.id === rangeId);
+          return range ? (
+            <Badge key={`range-${rangeId}`} variant="secondary" className="px-2 py-1 flex items-center gap-1">
+              <span className="sr-only">Price range filter: </span>
+              {range.label}
+              <button
+                type="button"
+                aria-label={`Remove ${range.label} filter`}
+                className="ml-1 hover:text-red-500"
+                onClick={() => handleRemoveRange(rangeId)}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </Badge>
+          ) : null;
+        })}
+        {dateRangeLabel && (
+          <Badge variant="secondary" className="px-2 py-1 flex items-center gap-1">
+            <span className="sr-only">Date range filter: </span>
+            {dateRangeLabel}
+            <button
+              type="button"
+              aria-label="Remove date range filter"
+              className="ml-1 hover:text-red-500"
+              onClick={handleRemoveDateRange}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </Badge>
+        )}
       </div>
     </form>
   );
