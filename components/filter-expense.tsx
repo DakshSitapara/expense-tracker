@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { DateRange } from "react-day-picker";
+import { getCategoryColor } from "@/lib/utils";
 
 interface FilterExpenseProps {
   expenses: Expense[];
@@ -35,6 +36,22 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
     { id: "500-1000", label: "₹500 - ₹1000", from: 500, to: 1000 },
     { id: "1000+", label: "₹1000+", from: 1000, to: Infinity },
   ];
+
+  
+const priceRangeColors: Record<string, string> = {
+  "0-100": "bg-gradient-to-r from-blue-400 to-blue-600",
+  "100-500": "bg-gradient-to-r from-green-400 to-green-600",
+  "500-1000": "bg-gradient-to-r from-teal-400 to-teal-600",
+  "1000+": "bg-gradient-to-r from-purple-400 to-purple-600"
+};
+
+function getPriceRangeColor(rangeId: string | undefined) {
+  return rangeId
+    ? priceRangeColors[rangeId] || "bg-zinc-400"
+    : "bg-zinc-400";
+}
+
+const dateRangeColor = "bg-gradient-to-r from-orange-400 to-orange-600";
 
   const dateRangeLabel = useMemo(() => {
     if (dateRange.from && dateRange.to) {
@@ -233,7 +250,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
 
       <div className="flex flex-wrap gap-2 w-full sm:w-1/2">
         {selectedCategories.map(category => (
-          <Badge key={`category-${category}`} variant="secondary" className="px-2 py-1 flex items-center gap-1">
+          <Badge key={`category-${category}`} variant="secondary" className={`px-2 py-1 flex items-center gap-1 ${getCategoryColor(category)}`}>
             <span className="sr-only">Category filter: </span>
             {category}
             <button
@@ -249,7 +266,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
         {selectedRanges.map(rangeId => {
           const range = predefinedRanges.find(r => r.id === rangeId);
           return range ? (
-            <Badge key={`range-${rangeId}`} variant="secondary" className="px-2 py-1 flex items-center gap-1">
+            <Badge key={`range-${rangeId}`} variant="secondary" className={`px-2 py-1 flex items-center gap-1 ${getPriceRangeColor(range.id)}`}>
               <span className="sr-only">Price range filter: </span>
               {range.label}
               <button
@@ -264,7 +281,7 @@ export default function FilterExpense({ expenses, onFilter }: FilterExpenseProps
           ) : null;
         })}
         {dateRangeLabel && (
-          <Badge variant="secondary" className="px-2 py-1 flex items-center gap-1">
+          <Badge variant="secondary" className={`px-2 py-1 flex items-center gap-1 ${dateRangeColor}`}>
             <span className="sr-only">Date range filter: </span>
             {dateRangeLabel}
             <button
