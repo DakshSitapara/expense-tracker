@@ -66,37 +66,41 @@ const dateRangeColor = "bg-gradient-to-r from-orange-400 to-orange-600";
     return null;
   }, [dateRange]);
 
+const filteredExpenses = useMemo(() => {
+  let filtered = [...expenses];
+
+  if (selectedCategories.length) {
+    filtered = filtered.filter(exp => selectedCategories.includes(exp.category));
+  }
+
+  if (dateRange.from || dateRange.to) {
+    filtered = filtered.filter(expense => {
+      const expenseDate = parseISO(expense.date);
+      const from = dateRange.from;
+      const to = dateRange.to;
+
+      const isAfterFrom = from ? expenseDate >= from : true;
+      const isBeforeTo = to ? expenseDate <= to : true;
+
+      return isAfterFrom && isBeforeTo;
+    });
+  }
+
+  if (selectedRanges.length) {
+    filtered = filtered.filter(expense => {
+      return selectedRanges.some(rangeId => {
+        const range = predefinedRanges.find(r => r.id === rangeId);
+        return range && expense.amount >= range.from && expense.amount <= range.to;
+      });
+    });
+  }
+
+  return filtered;
+}, [expenses, selectedCategories, dateRange, selectedRanges]);
+
   useEffect(() => {
-    let filtered = [...expenses];
-
-    if (selectedCategories.length) {
-      filtered = filtered.filter(expenses => selectedCategories.includes(expenses.category));
-    }
-
-    if (dateRange.from || dateRange.to) {
-      filtered = filtered.filter(expense => {
-        const expenseDate = parseISO(expense.date);
-        const from = dateRange.from;
-        const to = dateRange.to;
-
-        const isAfterFrom = from ? expenseDate >= from : true;
-        const isBeforeTo = to ? expenseDate <= to : true;
-
-        return isAfterFrom && isBeforeTo;
-      });
-    }
-
-    if (selectedRanges.length) {
-      filtered = filtered.filter(expense => {
-        return selectedRanges.some(rangeId => {
-          const range = predefinedRanges.find(range => range.id === rangeId);
-          return range && expense.amount >= range.from && expense.amount <= range.to;
-        });
-      });
-    }
-
-    onFilter(filtered);
-  }, [selectedCategories, dateRange, selectedRanges, expenses, onFilter]);
+    onFilter(filteredExpenses);
+  }, [filteredExpenses, onFilter]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategories(prev =>
