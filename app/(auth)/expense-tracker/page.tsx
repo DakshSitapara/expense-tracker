@@ -61,18 +61,18 @@ export default function ExpenseTracker() {
   const [popoverOpen, setPopoverOpen] = useState<{ [key: string]: boolean }>({});
   const [isMobile, setIsMobile] = useState(false);
 
-const pageOptions = useMemo(() => {
-  const len = filteredExpenses.length;
-  const options = [5];
+  const pageOptions = useMemo(() => {
+    const len = filteredExpenses.length;
+    const options = [5];
 
-  if (len > 5) options.push(10);
-  if (len > 15) options.push(20);
-  if (len > 25) options.push(30);
-  if (len > 40) options.push(50);
-  if (len > 60) options.push(100);
+    if (len > 5) options.push(10);
+    if (len > 15) options.push(20);
+    if (len > 25) options.push(30);
+    if (len > 40) options.push(50);
+    if (len > 60) options.push(100);
 
-  return options;
-}, [filteredExpenses.length]);
+    return options;
+  }, [filteredExpenses.length]);
 
   const totalExpenses = useMemo(
     () => filteredExpenses.reduce((total, expense) => total + expense.amount, 0),
@@ -85,10 +85,10 @@ const pageOptions = useMemo(() => {
   );
   const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
 
-  const paginatedExpenses = filteredExpenses.slice(
+  const paginatedExpenses = useMemo(() => filteredExpenses.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
+  ), [filteredExpenses, currentPage, itemsPerPage]);
 
   const closeAllModals = () => {
     setShowAddForm(false);
@@ -215,7 +215,7 @@ const pageOptions = useMemo(() => {
           Total Amount: <span className="text-primary dark:text-primary-light">₹{totalExpenses}</span> 
            | Total Expenses: <span className="text-primary dark:text-primary-light">{totalExpensesCount}</span>
         </p>
-
+    
         <div className="flex flex-col gap-6 mb-1">
           {expenses.length > 0 && (
             <FilterExpense expenses={expenses} onFilter={setFilteredExpenses} />
@@ -311,21 +311,29 @@ const pageOptions = useMemo(() => {
                             variant="outline"
                             size="icon"
                             title="Copy Details"
-                            onClick={() => {
-                              navigator.clipboard.writeText(
-                                `You spent ₹${expense.amount} on "${expense.title}" on ${format(new Date(expense.date), "MMMM d, yyyy")}.`
-                              );
-                              toast.success(
-                                <span>
-                                  <span className="font-semibold text-primary dark:text-primary-light">Copied!</span>
-                                  <br />
-                                  <span className="text-gray-700 dark:text-gray-200">
-                                    You spent <span className="font-bold">₹{expense.amount}</span> on
-                                    <span className="italic"> {expense.title}</span> on
-                                    <span className="font-mono"> {format(new Date(expense.date), "MMMM d, yyyy")}</span>.
+                            aria-label="Copy expense details to clipboard"
+                           onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(
+                                  `You spent ₹${expense.amount} on "${expense.title}" on ${format(
+                                    new Date(expense.date),
+                                    "MMMM d, yyyy"
+                                  )}.`
+                                );
+                                toast.success(
+                                  <span>
+                                    <span className="font-semibold text-primary dark:text-primary-light">Copied!</span>
+                                    <br />
+                                    <span className="text-gray-700 dark:text-gray-200">
+                                      You spent <span className="font-bold">₹{expense.amount}</span> on
+                                      <span className="italic"> {expense.title}</span> on
+                                      <span className="font-mono"> {format(new Date(expense.date), "MMMM d, yyyy")}</span>.
+                                    </span>
                                   </span>
-                                </span>
-                              );
+                                );
+                              } catch (err) {
+                                toast.error("Failed to copy to clipboard");
+                              }
                             }}
                           >
                             <LuClipboardCopy />
