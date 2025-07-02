@@ -59,6 +59,7 @@ export default function ExpenseTracker() {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
   const [popoverOpen, setPopoverOpen] = useState<{ [key: string]: boolean }>({});
+  const [isMobile, setIsMobile] = useState(false);
 
 const pageOptions = useMemo(() => {
   const len = filteredExpenses.length;
@@ -142,6 +143,13 @@ const pageOptions = useMemo(() => {
     toast.success(`${username} logged out`);
     router.push("/login");
   };
+
+  useEffect(() => {
+    const checkSize = () => setIsMobile(window.innerWidth < 640);
+    checkSize();
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
+  }, []);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
@@ -254,7 +262,7 @@ const pageOptions = useMemo(() => {
                     </span>
                   </TableCell>
                   <TableCell className="px-2 py-1 text-gray-700 dark:text-gray-300">{expense.title}</TableCell>
-                  <TableCell className="px-2 py-1 text-gray-600 dark:text-gray-400">{new Date(expense.date).toLocaleDateString()}</TableCell>
+                  <TableCell className="px-2 py-1 text-gray-600 dark:text-gray-400">{format(new Date(expense.date), "dd MMM yyyy")}</TableCell>
                   <TableCell className="px-2 py-1">
                     <div className="flex items-center gap-2">
                       <Popover
@@ -268,14 +276,9 @@ const pageOptions = useMemo(() => {
                         </PopoverTrigger>
                         <PopoverContent
                           align="end"
-                          side={
-                            typeof window !== "undefined" && window.innerWidth < 640
-                              ? "bottom"
-                              : "right"
-                          }
-                          className= { 
-                            typeof window !== "undefined" && window.innerWidth < 640 ? 
-                              "p-0 items-center bg-transparent shadow-none border-none flex flex-col gap-2 w-auto" 
+                          side={isMobile ? "bottom" : "right"}
+                          className={isMobile
+                            ? "p-0 items-center bg-transparent shadow-none border-none flex flex-col gap-2 w-auto"
                             : "p-0 items-center bg-transparent shadow-none border-none flex flex-row gap-2 w-auto"}
                         >
                           <Popover>
@@ -310,7 +313,7 @@ const pageOptions = useMemo(() => {
                             title="Copy Details"
                             onClick={() => {
                               navigator.clipboard.writeText(
-                                `You spent ₹${expense.amount} on "${expense.title}" on ${new Date(expense.date).toLocaleDateString()}.`
+                                `You spent ₹${expense.amount} on "${expense.title}" on ${format(new Date(expense.date), "MMMM d, yyyy")}.`
                               );
                               toast.success(
                                 <span>
@@ -347,17 +350,19 @@ const pageOptions = useMemo(() => {
         </div>
 
         {/* Pagination */}
-        {totalPages > 0 && (
+        {totalExpensesCount > 5 && totalPages > 0 && (
           <div className="w-full flex flex-col items-center gap-2 py-6 mt-4 max-w-2xl mx-auto">
             <div className="flex justify-center">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Rows per page:</span>
                 <Select 
-                value={String(itemsPerPage)} onValueChange={(val) => {
-                  setItemsPerPage(Number(val));
-                  setCurrentPage(1);
-                }}>
-                  <SelectTrigger title={"show " +String(itemsPerPage) + " rows per page" || ""} className="w-20" size="sm">
+                  value={String(itemsPerPage)} 
+                  onValueChange={(val) => {
+                    setItemsPerPage(Number(val));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger title={"show " + String(itemsPerPage) + " rows per page" || ""} className="w-20" size="sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -383,7 +388,7 @@ const pageOptions = useMemo(() => {
                     />
                   </PaginationItem>
 
-                   {[...Array(totalPages)].map((_, i) => (
+                  {[...Array(totalPages)].map((_, i) => (
                     <Button
                       key={i + 1}
                       variant={currentPage === i + 1 ? "outline" : "ghost"}
