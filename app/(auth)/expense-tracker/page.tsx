@@ -2,27 +2,19 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { AddExpenseForm } from "@/components/add-expense-form";
 import { EditExpenseForm } from "@/components/edit-expense-form";
-import ViewExpense from "@/components/view-expense";
 import DeleteExpenseForm from "@/components/delete-expense-form";
 import FilterExpense from "@/components/filter-expense";
 import DarkModeToggle from "@/components/dark-mode-toggle";
 import { getCategoryColor } from "@/lib/utils";
 import { MdDeleteOutline } from "react-icons/md";
-import { FcViewDetails } from "react-icons/fc";
 import { FaRegEdit } from "react-icons/fa";
 import { LuClipboardCopy } from "react-icons/lu";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -43,11 +35,8 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Expense } from "@/types/expense";
-import { MoreVertical } from "lucide-react";
 import { IoIosLogOut } from "react-icons/io";
 import { FcAddDatabase } from "react-icons/fc";
-
-const ExpenseChart = dynamic(() => import('@/components/ExpenseChart'), { ssr: false });
 
 export default function ExpenseTracker() {
   const router = useRouter();
@@ -62,7 +51,6 @@ export default function ExpenseTracker() {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
   const [popoverOpen, setPopoverOpen] = useState<{ [key: string]: boolean }>({});
-  const [isMobile, setIsMobile] = useState(false);
 
   const pageOptions = useMemo(() => {
     const len = filteredExpenses.length;
@@ -146,13 +134,6 @@ export default function ExpenseTracker() {
   };
 
   useEffect(() => {
-    const checkSize = () => setIsMobile(window.innerWidth < 640);
-    checkSize();
-    window.addEventListener("resize", checkSize);
-    return () => window.removeEventListener("resize", checkSize);
-  }, []);
-
-  useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       setUsername(JSON.parse(storedUser).name);
@@ -219,7 +200,7 @@ export default function ExpenseTracker() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-9xl mx-auto mt-2 px-4">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -232,7 +213,7 @@ export default function ExpenseTracker() {
           </p>
         </motion.div>
 
-        <div className="flex flex-col lg:flex-row gap-6 mt-6">
+        <div className="flex flex-col items-center justify-center mt-2">
           {/* Left Side: Filter and Table */}
           <motion.div 
             className="lg:w-1/2 flex flex-col gap-6"
@@ -245,8 +226,8 @@ export default function ExpenseTracker() {
                 <FilterExpense expenses={expenses} onFilter={setFilteredExpenses} />
               </div>
             )}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-              <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden w-full">
+              <Table className="w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                 <TableHeader>
                   <TableRow className="bg-gray-50 dark:bg-gray-700">
                     <TableHead className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">#</TableHead>
@@ -291,32 +272,7 @@ export default function ExpenseTracker() {
                         <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">{format(new Date(expense.date), "dd MMM yyyy")}</TableCell>
                         <TableCell className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <Popover
-                              open={popoverOpen[expense.id]}
-                              onOpenChange={(open) => setPopoverOpen({ ...popoverOpen, [expense.id]: open })}
-                            >
-                              <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" title="Actions" className="hover:bg-gray-200 dark:hover:bg-gray-600">
-                                  <MoreVertical className="h-5 w-5" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                align="end"
-                                side={isMobile ? "bottom" : "right"}
-                                className={isMobile
-                                  ? "p-2 border-none max-w-none bg-transparent shadow-none flex flex-col gap-2 w-auto"
-                                  : "p-2 border-none max-w-none bg-transparent shadow-none flex flex-row gap-2 w-auto"}
-                              >
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  title="View Details"
-                                  onClick={() => setSelectedExpense(expense)}
-                                  className="hover:bg-blue-100 dark:hover:bg-blue-900"
-                                >
-                                  <FcViewDetails className="h-5 w-5" />
-                                </Button>
-                                <Button
+                               <Button
                                   variant="outline"
                                   size="icon"
                                   title="Edit Expense"
@@ -366,8 +322,6 @@ export default function ExpenseTracker() {
                                 >
                                   <MdDeleteOutline className="h-5 w-5" />
                                 </Button>
-                              </PopoverContent>
-                            </Popover>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -379,7 +333,7 @@ export default function ExpenseTracker() {
 
             {/* Pagination */}
             {totalExpensesCount > 5 && totalPages > 0 && (
-              <div className="w-full flex flex-col items-center gap-4 py-6 mt-4">
+              <div className="w-full flex flex-col items-center gap-4 py-2 mt-2">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Rows per page:</span>
                   <Select 
@@ -434,24 +388,6 @@ export default function ExpenseTracker() {
               </div>
             )}
           </motion.div>
-
-          {/* Right Side: Chart */}
-          <motion.div 
-            className="lg:w-1/2"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {expenses.length > 0 ? (
-              <div className="p-6">
-                <ExpenseChart expenses={filteredExpenses} />
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 dark:text-gray-400 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                No expenses to display in chart.
-              </div>
-            )}
-          </motion.div>
         </div>
       </main>
 
@@ -476,28 +412,7 @@ export default function ExpenseTracker() {
             </motion.div>
           </motion.div>
         )}
-
-        {selectedExpense && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={() => setSelectedExpense(null)}
-          >
-            <motion.div
-              onClick={e => e.stopPropagation()}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ViewExpense expense={selectedExpense} />
-            </motion.div>
-          </motion.div>
-        )}
-
+        
         {editExpense && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
